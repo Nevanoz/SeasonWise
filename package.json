@@ -9,5 +9,9 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "test:e2e": "pnpm --filter @musimaman/web test:e2e"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.1"
   }
 }
