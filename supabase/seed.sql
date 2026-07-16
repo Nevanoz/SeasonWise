@@ -1,0 +1,2 @@
+-- Seed data for MusimAman database
+-- Loaded into Supabase Local/Production for testing
