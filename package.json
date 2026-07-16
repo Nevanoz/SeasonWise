@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm --parallel --filter @musimaman/web --filter @musimaman/api dev",
+    "dev": "npm run dev --prefix apps/web",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
@@ -11,3 +11,4 @@
     "test:e2e": "pnpm --filter @musimaman/web test:e2e"
   }
 }
+
