@@ -11,6 +11,7 @@ import authSessionRoutes from "./routes/auth-session.js";
 import planRoutes from "./routes/plans.js";
 import marketPriceRoutes from "./routes/market-prices.js";
 import chatRoutes from "./routes/chat.js";
+import calculateRoutes from "./routes/calculate.js";
 
 export async function buildApp(appEnv: AppEnv = defaultEnv) {
   const app = Fastify({
@@ -26,6 +27,6 @@ export async function buildApp(appEnv: AppEnv = defaultEnv) {
   await app.register(supabasePlugin);
   await app.register(securityPlugin);
   await app.register(errorsPlugin);
-  await app.register(async (api) => { await api.register(healthRoutes); await api.register(authSessionRoutes); await api.register(planRoutes); await api.register(marketPriceRoutes); await api.register(chatRoutes); }, { prefix: "/api/v1" });
+  await app.register(async (api) => { await api.register(healthRoutes); await api.register(authSessionRoutes); await api.register(planRoutes); await api.register(marketPriceRoutes); await api.register(chatRoutes); await api.register(calculateRoutes); }, { prefix: "/api/v1" });
   return app;
 }

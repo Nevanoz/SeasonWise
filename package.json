@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @musimaman/web dev",
-    "dev:frontend": "pnpm --filter @musimaman/web dev",
-    "dev:backend": "pnpm --filter @musimaman/backend dev",
-    "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck",
-    "lint": "pnpm -r lint",
-    "test": "pnpm -r test",
-    "test:e2e": "pnpm --filter @musimaman/backend test:integration"
+    "dev": "npx pnpm --filter @musimaman/web dev",
+    "dev:frontend": "npx pnpm --filter @musimaman/web dev",
+    "dev:backend": "npx pnpm --filter @musimaman/backend dev",
+    "build": "npx pnpm -r build",
+    "typecheck": "npx pnpm -r typecheck",
+    "lint": "npx pnpm -r lint",
+    "test": "npx pnpm -r test",
+    "test:e2e": "npx pnpm --filter @musimaman/backend test:integration"
   },
   "engines": {
     "node": ">=20"

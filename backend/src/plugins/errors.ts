@@ -7,6 +7,9 @@ export default fp(async (app) => {
     if (error instanceof ZodError) {
       return reply.status(422).send({ error: { code: "VALIDATION_ERROR", message: "Request validation failed", requestId: request.id, details: error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })) } });
     }
+    if (error.name === "EngineValidationError") {
+      return reply.status(422).send({ error: { code: (error as any).code || "ENGINE_VALIDATION_ERROR", message: error.message, requestId: request.id } });
+    }
     if (error instanceof AppError) {
       return reply.status(error.statusCode).send({ error: { code: error.code, message: error.message, requestId: request.id, ...(error.details ? { details: error.details } : {}) } });
     }
