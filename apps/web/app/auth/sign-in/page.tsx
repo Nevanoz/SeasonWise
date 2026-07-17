@@ -24,8 +24,9 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white border border-border p-8 rounded-xl space-y-6">
-      <div className="text-center space-y-1">
+    <div className="max-w-[1200px] mx-auto px-6 py-12 fade-in">
+      <div className="max-w-md mx-auto bg-white border border-border p-8 rounded-xl space-y-6">
+        <div className="text-center space-y-1">
         <LogIn className="w-8 h-8 text-primary mx-auto" />
         <h1 className="text-xl font-bold text-text-primary">Masuk ke Akun Anda</h1>
         <p className="text-xs text-text-secondary">Akses rencana finansial terintegrasi cloud Anda.</p>
@@ -76,6 +77,7 @@ export default function SignInPage() {
       <div className="text-center text-xs">
         <span className="text-text-secondary">Belum memiliki akun? </span>
         <a href="/auth/sign-up" className="text-primary font-bold hover:underline">Daftar Sekarang</a>
+      </div>
       </div>
     </div>
   );

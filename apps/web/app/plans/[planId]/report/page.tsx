@@ -74,8 +74,9 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 border border-border rounded-xl space-y-8 print:border-none print:p-0">
-      {/* Top Controls - Hidden during print */}
+    <div className="max-w-[1200px] mx-auto px-6 py-12 fade-in">
+      <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 border border-border rounded-xl space-y-8 print:border-none print:p-0">
+        {/* Top Controls - Hidden during print */}
       <div className="flex justify-between items-center border-b border-border pb-4 no-print">
         <button
           onClick={() => router.push(`/plans/${planId}/results`)}
@@ -176,6 +177,7 @@ export default function ReportPage() {
         <p className="text-[10px] text-text-secondary">
           © {new Date().getFullYear()} MusimAman. Platform Simulasi Keuangan Petani Indonesia.
         </p>
+      </div>
       </div>
     </div>
   );

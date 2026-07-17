@@ -80,6 +80,7 @@ const config: Config = {
         "max-width": "1200px",
       },
       fontFamily: {
+        sans: ["Inter", "sans-serif"],
         "body-md": ["Inter", "sans-serif"],
         "disclaimer": ["Inter", "sans-serif"],
         "label-sm": ["Geist", "sans-serif"],

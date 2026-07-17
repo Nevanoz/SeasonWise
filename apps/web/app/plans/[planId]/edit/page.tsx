@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import NewPlanPage from '../../new/page';
+import { NewPlanForm } from '../../../../components/NewPlanForm';
 
 export default function EditPlanPage() {
   const router = useRouter();
@@ -50,11 +50,5 @@ export default function EditPlanPage() {
     );
   }
 
-  // We reuse the NewPlanPage but we should pre-fill the form.
-  // Actually, to make it clean, we can write a specific edit form or reuse NewPlanPage by letting it accept initial values.
-  // Since we wrote NewPlanPage directly, let's copy the code or adapt edit page to be its own self-contained wizard that loads values.
-  // Let's write a self-contained Edit Plan page to make it clean and robust. It's almost identical but with load step.
-  // Wait, let's write it down.
-  return <NewPlanPage />; // For simplicity of MVP, we can reuse NewPlanPage, but wait, to pre-fill we should read from localStorage in NewPlanPage itself or make a separate Edit Wizard!
-  // Let's write a dedicated Edit Wizard that reads the planId from the URL and pre-populates the form defaultValues.
+  return <NewPlanForm initialData={planData} />;
 }

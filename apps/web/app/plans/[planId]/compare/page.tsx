@@ -154,9 +154,10 @@ export default function ComparePage() {
   const { resultA, resultB, optA, optB, winner, reason } = comparison;
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center gap-4 border-b border-border pb-4">
+    <div className="max-w-[1200px] mx-auto px-6 py-12 fade-in">
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-center gap-4 border-b border-border pb-4">
         <button
           onClick={() => router.push(`/plans/${planId}/results`)}
           className="p-2 border border-border rounded-lg bg-white hover:bg-background/20"
@@ -247,6 +248,7 @@ export default function ComparePage() {
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

@@ -63,9 +63,10 @@ export default function SavedPlansPage() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="bg-white border border-border p-6 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="max-w-[1200px] mx-auto px-6 py-12 fade-in">
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="bg-white border border-border p-6 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Daftar Rencana Keuangan Anda</h1>
           <p className="text-xs text-text-secondary mt-0.5">Kelola rencana simulasi pertanian dan pinjaman yang telah Anda buat.</p>
@@ -272,6 +273,7 @@ export default function SavedPlansPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -231,9 +231,10 @@ export default function ResultsDashboard() {
   }));
 
   return (
-    <div className="space-y-8">
-      {/* Defs containing SVG Patterns for Recharts */}
-      <svg width="0" height="0" className="absolute">
+    <div className="max-w-[1200px] mx-auto px-6 py-12 fade-in">
+      <div className="space-y-8">
+        {/* Defs containing SVG Patterns for Recharts */}
+        <svg width="0" height="0" className="absolute">
         <defs>
           <pattern id="diagonal-hatch" patternUnits="userSpaceOnUse" width="12" height="12" patternTransform="rotate(45)">
             <rect width="12" height="12" fill="#FFEBEE" />
@@ -548,6 +549,7 @@ export default function ResultsDashboard() {
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

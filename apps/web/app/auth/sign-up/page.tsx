@@ -23,8 +23,9 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white border border-border p-8 rounded-xl space-y-6">
-      <div className="text-center space-y-1">
+    <div className="max-w-[1200px] mx-auto px-6 py-12 fade-in">
+      <div className="max-w-md mx-auto bg-white border border-border p-8 rounded-xl space-y-6">
+        <div className="text-center space-y-1">
         <UserPlus className="w-8 h-8 text-primary mx-auto" />
         <h1 className="text-xl font-bold text-text-primary">Daftar Akun Baru</h1>
         <p className="text-xs text-text-secondary">Simpan dan pantau ketahanan arus kas panen Anda di cloud.</p>
@@ -75,6 +76,7 @@ export default function SignUpPage() {
       <div className="text-center text-xs">
         <span className="text-text-secondary">Sudah memiliki akun? </span>
         <a href="/auth/sign-in" className="text-primary font-bold hover:underline">Masuk Di Sini</a>
+      </div>
       </div>
     </div>
   );
