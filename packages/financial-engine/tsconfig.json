@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declarationDir": "./dist",
+    "moduleResolution": "node",
+    "module": "CommonJS",
+    "rootDir": "../../",
+    "paths": {
+      "@musimaman/shared-types": ["../shared-types/src/index.ts"],
+      "@musimaman/config": ["../config/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "../shared-types/src/**/*", "../config/src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

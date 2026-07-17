@@ -121,6 +121,7 @@ export const RISK_CONFIG = {
 };
 
 export const ENGINE_VERSION = "1.0.0";
+export * from "./risk/prototype-1";
 export const RISK_CONFIG_VERSION = "prototype-1";
 export const DEMO_DATA_VERSION = 1;
 export const DEFAULT_LOCALE = "id-ID";
