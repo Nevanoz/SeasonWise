@@ -1,78 +1,97 @@
-export type Rupiah = number;
+export type CurrencyRupiah = number;
+export type Rupiah = CurrencyRupiah;
 export type BasisPoints = number;
-export type YearMonth = string; // e.g. "YYYY-MM"
+export type YearMonth = string;
 
-export type CropType = 'rice' | 'corn' | 'chili' | 'coffee' | 'palm_oil';
+export type CropType = "rice" | "corn" | "chili" | "coffee" | "palm_oil";
+
+export interface RegionSelection {
+  provinceCode: string;
+  regencyCode: string;
+  districtCode: string | null;
+}
 
 export interface CropPlanInput {
   cropType: CropType;
-  plantingDate: string; // ISO YYYY-MM-DD
+  plantingDate: string; // YYYY-MM-DD
+  estimatedHarvestDate: string; // YYYY-MM-DD
+  cycleDurationDays: number;
   expectedHarvestQuantity: number;
   quantityUnit: string;
-  expectedSellingPriceRupiah: Rupiah;
-  expectedTotalHarvestIncomeRupiah: Rupiah;
+  expectedSellingPriceRupiah: CurrencyRupiah;
 }
 
-export interface CashFlowItem {
+export interface CashFlowItemForm {
   id: string;
-  type: 'income' | 'production_expense';
+  type: "income" | "production_expense";
   category: string;
-  amountRupiah: Rupiah;
-  timingDate: string; // ISO YYYY-MM-DD
+  amountRupiah: CurrencyRupiah;
+  timingDate: string; // YYYY-MM-DD
   description?: string;
   isHarvestIncome?: boolean;
+}
+
+export interface PlanFormValues {
+  schemaVersion: 1;
+  title: string;
+  region: RegionSelection;
+  cropPlan: CropPlanInput;
+  cashFlowItems: CashFlowItemForm[];
+  monthlyHouseholdExpenseRupiah: CurrencyRupiah;
+  openingBalanceRupiah: CurrencyRupiah;
+  emergencyReserveRupiah: CurrencyRupiah;
+  financingOptions: FinancingOptionInput[];
+  notes?: string;
 }
 
 export interface FinancingOptionInput {
   id: string;
   name: string;
-  principalRupiah: Rupiah;
-  interestRateBps: BasisPoints;
-  interestPeriod: 'MONTHLY' | 'ANNUAL';
-  administrationFeeRupiah: Rupiah;
-  otherUpfrontFeesRupiah: Rupiah;
-  financingStartDate: string; // ISO YYYY-MM-DD
-  gracePeriodMonths: number; // MVP: 0
+  principalRupiah: CurrencyRupiah;
+  interestRateBps: number;
+  interestPeriod: "MONTHLY" | "ANNUAL";
+  administrationFeeRupiah: CurrencyRupiah;
+  otherUpfrontFeesRupiah: CurrencyRupiah;
+  financingStartDate: string; // YYYY-MM-DD
+  gracePeriodMonths: number; // MVP 0
   numberOfInstallments: number;
-  repaymentFrequency: 'MONTHLY' | 'ONCE';
-  repaymentStructure: 'FLAT_MONTHLY' | 'BULLET';
-  firstRepaymentDate: string; // ISO YYYY-MM-DD
+  repaymentFrequency: "MONTHLY" | "ONCE";
+  repaymentStructure: "FLAT_MONTHLY" | "BULLET";
+  firstRepaymentDate: string; // YYYY-MM-DD
 }
 
-export interface ScenarioConfig {
-  mode: 'EXPECTED' | 'MILD' | 'SEVERE' | 'CUSTOM';
-  harvestDelayMonths: number;
-  harvestIncomeReductionBps: number;
-  inputCostIncreaseBps: number;
-  enabled: {
-    harvestDelay: boolean;
-    harvestIncomeReduction: boolean;
-    inputCostIncrease: boolean;
-  };
+export interface CashFlowItem {
+  id: string;
+  type: "income" | "production_expense";
+  category: string;
+  amountRupiah: CurrencyRupiah;
+  timingDate: string; // YYYY-MM-DD
+  description?: string;
+  isHarvestIncome?: boolean;
 }
 
 export interface CalculationInput {
   schemaVersion: 1;
-  engineVersion: '1.0.0';
-  planStartDate: string; // ISO YYYY-MM-DD
-  planEndDate: string; // ISO YYYY-MM-DD
-  openingBalanceRupiah: Rupiah;
-  emergencyReserveRupiah: Rupiah;
-  monthlyHouseholdExpenseRupiah: Rupiah;
+  engineVersion: "1.0.0";
+  planStartDate: string; // YYYY-MM-DD
+  planEndDate: string; // YYYY-MM-DD
+  openingBalanceRupiah: CurrencyRupiah;
+  emergencyReserveRupiah: CurrencyRupiah;
+  monthlyHouseholdExpenseRupiah: CurrencyRupiah;
   cashFlowItems: CashFlowItem[];
-  financingOption: FinancingOptionInput | null;
+  financingOption: FinancingOptionInput;
 }
 
 export interface MonthlyCashFlow {
-  month: YearMonth;
-  operatingIncomeRupiah: Rupiah;
-  harvestIncomeRupiah: Rupiah;
-  nonFarmIncomeRupiah: Rupiah;
-  financingInflowRupiah: Rupiah;
-  productionExpenseRupiah: Rupiah;
-  householdExpenseRupiah: Rupiah;
-  financingFeeRupiah: Rupiah;
-  financingPaymentRupiah: Rupiah;
+  month: string; // YYYY-MM
+  operatingIncomeRupiah: CurrencyRupiah;
+  harvestIncomeRupiah: CurrencyRupiah;
+  nonFarmIncomeRupiah: CurrencyRupiah;
+  financingInflowRupiah: CurrencyRupiah;
+  productionExpenseRupiah: CurrencyRupiah;
+  householdExpenseRupiah: CurrencyRupiah;
+  financingFeeRupiah: CurrencyRupiah;
+  financingPaymentRupiah: CurrencyRupiah;
   netCashFlowRupiah: number;
   runningBalanceRupiah: number;
   isCashGap: boolean;
@@ -84,13 +103,13 @@ export interface CashFlowResult {
   monthly: MonthlyCashFlow[];
   minimumBalanceRupiah: number;
   maximumCashGapRupiah: number;
-  firstCashGapMonth: YearMonth | null;
-  totalFinancingPaymentRupiah: Rupiah;
-  totalInterestRupiah: Rupiah;
-  totalFeesRupiah: Rupiah;
-  totalFinancingCostRupiah: Rupiah;
-  breakEvenHarvestIncomeRupiah: Rupiah;
-  preHarvestLiquidityRequiredRupiah: Rupiah;
+  firstCashGapMonth: string | null; // YYYY-MM or null
+  totalFinancingPaymentRupiah: CurrencyRupiah;
+  totalInterestRupiah: CurrencyRupiah;
+  totalFeesRupiah: CurrencyRupiah;
+  totalFinancingCostRupiah: CurrencyRupiah;
+  breakEvenHarvestIncomeRupiah: CurrencyRupiah;
+  preHarvestLiquidityRequiredRupiah: CurrencyRupiah;
   repaymentToIncomeRatioBps: number;
   negativeCashFlowMonths: number;
   endingBalanceRupiah: number;
@@ -98,7 +117,7 @@ export interface CashFlowResult {
   warnings: string[];
 }
 
-export interface RiskAssessmentFactor {
+export interface RiskFactor {
   code: string;
   deduction: number;
   actualValue: number | string;
@@ -108,8 +127,20 @@ export interface RiskAssessmentFactor {
 
 export interface RiskAssessment {
   score: number;
-  category: 'RELATIVELY_RESILIENT' | 'NEEDS_ADJUSTMENT' | 'HIGH_CASH_FLOW_RISK';
-  configVersion: 'prototype-1';
-  factors: RiskAssessmentFactor[];
-  disclaimerRequired: true;
+  category: "RELATIVELY_RESILIENT" | "NEEDS_ADJUSTMENT" | "HIGH_CASH_FLOW_RISK";
+  configVersion: string;
+  factors: RiskFactor[];
+  disclaimerRequired: boolean;
+}
+
+export interface CashFlowChartPoint {
+  month: string; // YYYY-MM
+  incomeRupiah: number;
+  financingInflowRupiah: number;
+  productionExpenseRupiah: number;
+  householdExpenseRupiah: number;
+  financingPaymentRupiah: number;
+  netCashFlowRupiah: number;
+  runningBalanceRupiah: number;
+  isCashGap: boolean;
 }
