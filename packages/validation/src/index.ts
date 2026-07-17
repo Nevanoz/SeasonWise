@@ -116,7 +116,9 @@ export const PlanFormValuesSchema = z
   .object({
     schemaVersion: z.literal(1),
     title: z.string().min(1, "Judul rencana harus diisi").max(100, "Judul maksimal 100 karakter"),
-    region: RegionSelectionSchema,
+    provinceCode: z.string().min(1, "Provinsi harus dipilih"),
+    regencyCode: z.string().min(1, "Kabupaten/Kota harus dipilih"),
+    districtCode: z.string().nullable().optional(),
     cropPlan: CropPlanInputSchema,
     cashFlowItems: z.array(CashFlowItemFormSchema),
     monthlyHouseholdExpenseRupiah: safeRupiahSchema,

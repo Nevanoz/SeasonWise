@@ -34,7 +34,9 @@ export interface CashFlowItemForm {
 export interface PlanFormValues {
   schemaVersion: 1;
   title: string;
-  region: RegionSelection;
+  provinceCode: string;
+  regencyCode: string;
+  districtCode: string | null;
   cropPlan: CropPlanInput;
   cashFlowItems: CashFlowItemForm[];
   monthlyHouseholdExpenseRupiah: CurrencyRupiah;
