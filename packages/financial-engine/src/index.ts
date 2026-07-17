@@ -843,5 +843,211 @@ export function comparePlans(
   };
 }
 
+export function transformScenario(input: CalculationInput, config: ScenarioConfig): CalculationInput {
+  return applyScenario(input, config);
+}
+
+export function calculateResilienceScore(
+  baseInput: CalculationInput,
+  expectedResult: CashFlowResult,
+  mildResult: CashFlowResult,
+  severeResult: CashFlowResult,
+  customResult: CashFlowResult | null
+): RiskAssessment {
+  let score = 100;
+  const factors: RiskFactor[] = [];
+
+  // Factor 1: Expected scenario maximum cash gap > 0 (Defisit Kas terjadi di kondisi normal)
+  if (expectedResult.maximumCashGapRupiah > 0) {
+    score -= 35;
+    factors.push({
+      code: "EXPECTED_CASH_GAP",
+      deduction: 35,
+      actualValue: expectedResult.maximumCashGapRupiah,
+      threshold: 0,
+      explanationKey: "Defisit kas terdeteksi pada skenario normal.",
+    });
+  }
+
+  // Factor 2: Any enabled stress creates/increases cash gap
+  const maxStressGap = Math.max(
+    mildResult.maximumCashGapRupiah,
+    severeResult.maximumCashGapRupiah,
+    customResult ? customResult.maximumCashGapRupiah : 0
+  );
+  if (maxStressGap > expectedResult.maximumCashGapRupiah) {
+    score -= 20;
+    factors.push({
+      code: "STRESS_INCREASES_GAP",
+      deduction: 20,
+      actualValue: maxStressGap,
+      threshold: expectedResult.maximumCashGapRupiah,
+      explanationKey: "Uji stres memperparah defisit kas.",
+    });
+  }
+
+  // Factor 3: Repayment-to-income
+  const ratio = expectedResult.repaymentToIncomeRatioBps;
+  if (ratio > 5000) {
+    score -= 15;
+    factors.push({
+      code: "REPAYMENT_TO_INCOME_CRITICAL",
+      deduction: 15,
+      actualValue: `${(ratio / 100).toFixed(1)}%`,
+      threshold: "50.0%",
+      explanationKey: "Rasio cicilan terhadap pendapatan melebihi batas kritis 50%.",
+    });
+  } else if (ratio > 3500) {
+    score -= 10;
+    factors.push({
+      code: "REPAYMENT_TO_INCOME_SEVERE",
+      deduction: 10,
+      actualValue: `${(ratio / 100).toFixed(1)}%`,
+      threshold: "35.0%",
+      explanationKey: "Rasio cicilan terhadap pendapatan melebihi batas aman 35%.",
+    });
+  } else if (ratio > 2000) {
+    score -= 5;
+    factors.push({
+      code: "REPAYMENT_TO_INCOME_MILD",
+      deduction: 5,
+      actualValue: `${(ratio / 100).toFixed(1)}%`,
+      threshold: "20.0%",
+      explanationKey: "Rasio cicilan terhadap pendapatan di atas 20%.",
+    });
+  }
+
+  // Factor 4: Opening + reserve covers household months
+  const totalReserves = baseInput.openingBalanceRupiah + baseInput.emergencyReserveRupiah;
+  const householdExpense = baseInput.monthlyHouseholdExpenseRupiah;
+  if (householdExpense > 0) {
+    const coverageMonths = totalReserves / householdExpense;
+    if (coverageMonths < 1) {
+      score -= 10;
+      factors.push({
+        code: "RESERVE_COVERAGE_CRITICAL",
+        deduction: 10,
+        actualValue: `${coverageMonths.toFixed(2)} bulan`,
+        threshold: "1.00 bulan",
+        explanationKey: "Dana cadangan awal tidak cukup menutupi pengeluaran keluarga 1 bulan.",
+      });
+    } else if (coverageMonths < 2) {
+      score -= 5;
+      factors.push({
+        code: "RESERVE_COVERAGE_MILD",
+        deduction: 5,
+        actualValue: `${coverageMonths.toFixed(2)} bulan`,
+        threshold: "2.00 bulan",
+        explanationKey: "Dana cadangan awal kurang dari 2 bulan kebutuhan keluarga.",
+      });
+    }
+  }
+
+  // Factor 5: Expected ending balance
+  const endingBalance = expectedResult.endingBalanceRupiah;
+  if (endingBalance <= 0) {
+    score -= 10;
+    factors.push({
+      code: "ENDING_BALANCE_NEGATIVE",
+      deduction: 10,
+      actualValue: endingBalance,
+      threshold: 0,
+      explanationKey: "Proyeksi saldo kas akhir bernilai negatif atau nol.",
+    });
+  } else if (householdExpense > 0 && endingBalance < householdExpense) {
+    score -= 5;
+    factors.push({
+      code: "ENDING_BALANCE_LOW",
+      deduction: 5,
+      actualValue: endingBalance,
+      threshold: householdExpense,
+      explanationKey: "Saldo kas akhir kurang dari biaya 1 bulan rumah tangga.",
+    });
+  }
+
+  // Factor 6: Financing cost > 30% of principal
+  if (baseInput.financingOption) {
+    const principal = baseInput.financingOption.principalRupiah;
+    if (principal > 0) {
+      const financingCost = expectedResult.totalInterestRupiah + expectedResult.totalFeesRupiah;
+      if (financingCost / principal > 0.3) {
+        score -= 5;
+        factors.push({
+          code: "HIGH_FINANCING_COST",
+          deduction: 5,
+          actualValue: `${((financingCost / principal) * 100).toFixed(1)}%`,
+          threshold: "30.0%",
+          explanationKey: "Total biaya pinjaman (bunga + biaya) melebihi 30% dari pokok pinjaman.",
+        });
+      }
+    }
+  }
+
+  // Factor 7: Gaps in sensitivity testing
+  // Delay only
+  const delayOnlyConfig: ScenarioConfig = {
+    mode: "CUSTOM",
+    harvestDelayMonths: 1,
+    harvestIncomeReductionBps: 0,
+    inputCostIncreaseBps: 0,
+    enabled: { harvestDelay: true, harvestIncomeReduction: false, inputCostIncrease: false },
+  };
+  const delayResult = calculatePlan(transformScenario(baseInput, delayOnlyConfig));
+  
+  // Reduction only
+  const reductionOnlyConfig: ScenarioConfig = {
+    mode: "CUSTOM",
+    harvestDelayMonths: 0,
+    harvestIncomeReductionBps: 1000, // 10%
+    inputCostIncreaseBps: 0,
+    enabled: { harvestDelay: false, harvestIncomeReduction: true, inputCostIncrease: false },
+  };
+  const reductionResult = calculatePlan(transformScenario(baseInput, reductionOnlyConfig));
+
+  // Cost increase only
+  const costOnlyConfig: ScenarioConfig = {
+    mode: "CUSTOM",
+    harvestDelayMonths: 0,
+    harvestIncomeReductionBps: 0,
+    inputCostIncreaseBps: 1000, // 10%
+    enabled: { harvestDelay: false, harvestIncomeReduction: false, inputCostIncrease: true },
+  };
+  const costResult = calculatePlan(transformScenario(baseInput, costOnlyConfig));
+
+  let sensitivityGapCount = 0;
+  if (delayResult.maximumCashGapRupiah > expectedResult.maximumCashGapRupiah) sensitivityGapCount++;
+  if (reductionResult.maximumCashGapRupiah > expectedResult.maximumCashGapRupiah) sensitivityGapCount++;
+  if (costResult.maximumCashGapRupiah > expectedResult.maximumCashGapRupiah) sensitivityGapCount++;
+
+  if (sensitivityGapCount > 0) {
+    const deduction = Math.min(10, sensitivityGapCount * 5);
+    score -= deduction;
+    factors.push({
+      code: "SENSITIVITY_GAPS",
+      deduction,
+      actualValue: sensitivityGapCount,
+      threshold: 0,
+      explanationKey: `Pemberian stressor mandiri menimbulkan cash gap baru (${sensitivityGapCount} sensitivitas).`,
+    });
+  }
+
+  score = Math.max(0, Math.min(100, score));
+
+  let category: RiskAssessment["category"] = "RELATIVELY_RESILIENT";
+  if (score < 50) {
+    category = "HIGH_CASH_FLOW_RISK";
+  } else if (score < 75) {
+    category = "NEEDS_ADJUSTMENT";
+  }
+
+  return {
+    score,
+    category,
+    configVersion: "prototype-1",
+    factors,
+    disclaimerRequired: true,
+  };
+}
+
 // Re-export types for consumers
-export type { CalculationInput, CashFlowResult, MonthlyCashFlow, RiskAssessment };
+export type { CalculationInput, CashFlowResult, MonthlyCashFlow, RiskAssessment, RiskFactor };
