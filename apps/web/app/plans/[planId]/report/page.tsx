@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { calculatePlan } from '@musimaman/financial-engine';
 import { CalculationInput, CashFlowResult } from '@musimaman/shared-types';
 import { Printer, ArrowLeft } from 'lucide-react';
+import { getGuestPlan } from '../../../../lib/guest-plans';
 
 export default function ReportPage() {
   const { planId } = useParams() as { planId: string };
@@ -13,19 +14,8 @@ export default function ReportPage() {
   const [basePlan, setBasePlan] = useState<any>(null);
 
   useEffect(() => {
-    const storageKey = 'musimaman:guest-plans:v1';
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const plans = JSON.parse(stored);
-        const plan = plans.find((p: any) => p.id === planId);
-        if (plan) {
-          setBasePlan(plan);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    const plan = getGuestPlan(planId);
+    if (plan) setBasePlan(plan);
     setLoading(false);
   }, [planId]);
 
@@ -37,7 +27,7 @@ export default function ReportPage() {
       schemaVersion: 1,
       engineVersion: '1.0.0',
       planStartDate: basePlan.cropPlan?.plantingDate || '2024-11-01',
-      planEndDate: addMonthsStr(basePlan.cropPlan?.plantingDate || '2024-11-01', 6),
+      planEndDate: addMonthsStr(basePlan.cropPlan?.plantingDate || '2024-11-01', 18),
       openingBalanceRupiah: basePlan.openingBalanceRupiah || 0,
       emergencyReserveRupiah: basePlan.emergencyReserveRupiah || 0,
       monthlyHouseholdExpenseRupiah: basePlan.monthlyHouseholdExpenseRupiah || 0,

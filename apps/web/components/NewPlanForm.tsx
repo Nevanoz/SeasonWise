@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import { planFormSchema } from '@musimaman/validation';
 import { CROP_TEMPLATES } from '@musimaman/config';
 import { CropType } from '@musimaman/shared-types';
 import { Leaf, Plus, Trash2, Coins, ArrowRight, ArrowLeft, Check, HelpCircle } from 'lucide-react';
+import { saveGuestPlan } from '../lib/guest-plans';
 
 type PlanFormValues = z.infer<typeof planFormSchema>;
 
@@ -67,6 +68,8 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
       cropPlan: {
         cropType: 'rice' as CropType,
         plantingDate: new Date().toISOString().split('T')[0],
+        estimatedHarvestDate: new Date(Date.now() + 120 * 86400000).toISOString().split('T')[0],
+        cycleDurationDays: 120,
         expectedHarvestQuantity: 0,
         quantityUnit: 'Ton',
         expectedSellingPriceRupiah: 0,
@@ -78,7 +81,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
       emergencyReserveRupiah: 0,
       financingOptions: [
         {
-          id: 'loan-primary',
+          id: crypto.randomUUID(),
           name: 'Skema Pembiayaan Utama',
           principalRupiah: 0,
           interestRateBps: 0,
@@ -129,6 +132,8 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
     setValue('cropPlan.quantityUnit', template.quantityUnit);
     setValue('cropPlan.expectedSellingPriceRupiah', template.expectedSellingPriceRupiah);
     setValue('cropPlan.expectedTotalHarvestIncomeRupiah', template.expectedYieldPerHa * template.expectedSellingPriceRupiah);
+    setValue('cropPlan.cycleDurationDays', template.cycleDurationMonths * 30);
+
 
     // Populate typical expenses based on plantingDate
     const pDate = watchCropPlan?.plantingDate || new Date().toISOString().split('T')[0];
@@ -142,7 +147,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
       expDate.setMonth(expDate.getMonth() + exp.monthOffset);
       
       append({
-        id: Math.random().toString(36).substring(7),
+        id: crypto.randomUUID(),
         type: 'production_expense',
         category: exp.category,
         amountRupiah: exp.amountPerHa,
@@ -156,8 +161,10 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
     harvestDate.setMonth(harvestDate.getMonth() + template.cycleDurationMonths);
     setValue('cropPlan.plantingDate', pDate);
     
+    setValue('cropPlan.estimatedHarvestDate', harvestDate.toISOString().split('T')[0]);
+
     append({
-      id: 'harvest-income-auto',
+      id: crypto.randomUUID(),
       type: 'income',
       category: `Hasil Panen ${template.name.split(' ')[0]}`,
       amountRupiah: template.expectedYieldPerHa * template.expectedSellingPriceRupiah,
@@ -197,34 +204,15 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
     setCompareEnabled(!compareEnabled);
   };
 
-  const onSubmit = (data: any) => {
-    // Save to guest storage
-    const storageKey = 'musimaman:guest-plans:v1';
-    let existingPlans = [];
+  const onSubmit = (data: PlanFormValues) => {
+    const planId = initialData?.id || crypto.randomUUID();
+    const result = saveGuestPlan({ ...data, id: planId });
     try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        existingPlans = JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error(e);
+      localStorage.setItem('musimaman:active-plan-id', planId);
+    } catch { /* storage utility already keeps an in-memory fallback */ }
+    if (!result.persisted) {
+      alert('Penyimpanan browser tidak tersedia. Rencana tetap aktif selama tab ini terbuka.');
     }
-
-    const planId = initialData?.id || 'plan-' + Math.random().toString(36).substring(2, 9);
-    const newPlan = {
-      ...data,
-      id: planId,
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (initialData?.id) {
-      existingPlans = existingPlans.map((p: any) => p.id === initialData.id ? newPlan : p);
-    } else {
-      existingPlans.push(newPlan);
-    }
-    localStorage.setItem(storageKey, JSON.stringify(existingPlans));
-    localStorage.setItem('musimaman:active-plan-id', planId);
-
     router.push(`/plans/${planId}/results`);
   };
 
@@ -320,7 +308,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                         key={type}
                         type="button"
                         onClick={() => handleApplyTemplate(type)}
-                        className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center transition-all ${
+                        className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 text-center transition-colors ${
                           active 
                             ? 'border-primary bg-[#E8EFE8] text-primary' 
                             : 'border-border hover:border-primary/50 text-text-secondary'
@@ -400,7 +388,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                   <button
                     type="button"
                     onClick={() => append({
-                      id: Math.random().toString(36).substring(7),
+                      id: crypto.randomUUID(),
                       type: 'production_expense',
                       category: '',
                       amountRupiah: 0,
@@ -424,7 +412,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             id={`cf-type-${idx}`}
                             disabled={isHarvest}
                             {...register(`cashFlowItems.${idx}.type` as const)}
-                            className="w-full border border-border p-2 rounded text-xs bg-white min-h-[38px] disabled:opacity-50 font-sans"
+                            className="w-full border border-border p-2 rounded text-xs bg-white min-h-[44px] disabled:opacity-50 font-sans"
                           >
                             <option value="production_expense">Biaya Produksi</option>
                             <option value="income">Pendapatan Lain</option>
@@ -439,7 +427,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             disabled={isHarvest}
                             placeholder="Contoh: Pupuk NPK, Bibit"
                             {...register(`cashFlowItems.${idx}.category` as const)}
-                            className="w-full border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                            className="w-full border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                           />
                         </div>
 
@@ -450,7 +438,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             type="number"
                             placeholder="0"
                             {...register(`cashFlowItems.${idx}.amountRupiah` as const, { valueAsNumber: true })}
-                            className="w-full border border-border p-2 rounded text-xs bg-white min-h-[38px] font-mono"
+                            className="w-full border border-border p-2 rounded text-xs bg-white min-h-[44px] font-mono"
                           />
                         </div>
 
@@ -460,7 +448,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             id={`cf-date-${idx}`}
                             type="date"
                             {...register(`cashFlowItems.${idx}.timingDate` as const)}
-                            className="w-full border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                            className="w-full border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                           />
                         </div>
 
@@ -574,7 +562,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                           id="primary-loan-name"
                           type="text"
                           {...register('financingOptions.0.name')}
-                          className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                          className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                         />
                       </div>
 
@@ -585,7 +573,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             id="primary-principal"
                             type="number"
                             {...register('financingOptions.0.principalRupiah', { valueAsNumber: true })}
-                            className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-mono"
+                            className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-mono"
                           />
                         </div>
                         <div className="flex flex-col gap-1">
@@ -600,7 +588,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                                 const val = parseFloat(e.target.value);
                                 setValue('financingOptions.0.interestRateBps', isNaN(val) ? 0 : Math.round(val * 100));
                               }}
-                              className="flex-1 p-2 text-xs focus:outline-none min-h-[38px]"
+                              className="flex-1 p-2 text-xs focus:outline-none min-h-[44px]"
                             />
                             <span className="p-2 text-xs text-text-secondary bg-[#E8EFE8] font-bold font-sans">%</span>
                           </div>
@@ -613,7 +601,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                           <select
                             id="primary-rate-period"
                             {...register('financingOptions.0.interestPeriod')}
-                            className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                            className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                           >
                             <option value="ANNUAL">Per Tahun (Annual)</option>
                             <option value="MONTHLY">Per Bulan (Monthly)</option>
@@ -633,7 +621,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                                 setValue('financingOptions.0.numberOfInstallments', 1);
                               }
                             }}
-                            className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                            className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                           >
                             <option value="FLAT_MONTHLY">Cicilan Flat Bulanan</option>
                             <option value="BULLET">Pascapanen (Bullet)</option>
@@ -649,7 +637,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             type="number"
                             disabled={watchFinancingOptions[0]?.repaymentStructure === 'BULLET'}
                             {...register('financingOptions.0.numberOfInstallments', { valueAsNumber: true })}
-                            className="border border-border p-2 rounded text-xs bg-white min-h-[38px] disabled:opacity-50 font-sans"
+                            className="border border-border p-2 rounded text-xs bg-white min-h-[44px] disabled:opacity-50 font-sans"
                           />
                         </div>
                         <div className="flex flex-col gap-1">
@@ -658,7 +646,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             id="primary-admin-fee"
                             type="number"
                             {...register('financingOptions.0.administrationFeeRupiah', { valueAsNumber: true })}
-                            className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-mono"
+                            className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-mono"
                           />
                         </div>
                       </div>
@@ -670,7 +658,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             id="primary-disburse-date"
                             type="date"
                             {...register('financingOptions.0.financingStartDate')}
-                            className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                            className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                           />
                         </div>
                         <div className="flex flex-col gap-1">
@@ -679,7 +667,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             id="primary-repay-date"
                             type="date"
                             {...register('financingOptions.0.firstRepaymentDate')}
-                            className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                            className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                           />
                         </div>
                       </div>
@@ -700,7 +688,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             id="secondary-loan-name"
                             type="text"
                             {...register('financingOptions.1.name')}
-                            className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                            className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                           />
                         </div>
 
@@ -711,7 +699,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                               id="secondary-principal"
                               type="number"
                               {...register('financingOptions.1.principalRupiah', { valueAsNumber: true })}
-                              className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-mono"
+                              className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-mono"
                             />
                           </div>
                           <div className="flex flex-col gap-1">
@@ -726,7 +714,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                                   const val = parseFloat(e.target.value);
                                   setValue('financingOptions.1.interestRateBps', isNaN(val) ? 0 : Math.round(val * 100));
                                 }}
-                                className="flex-1 p-2 text-xs focus:outline-none min-h-[38px]"
+                                className="flex-1 p-2 text-xs focus:outline-none min-h-[44px]"
                               />
                               <span className="p-2 text-xs text-text-secondary bg-[#E8EFE8] font-bold font-sans">%</span>
                             </div>
@@ -739,7 +727,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                             <select
                               id="secondary-rate-period"
                               {...register('financingOptions.1.interestPeriod')}
-                              className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                              className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                             >
                               <option value="ANNUAL">Per Tahun (Annual)</option>
                               <option value="MONTHLY">Per Bulan (Monthly)</option>
@@ -759,7 +747,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                                   setValue('financingOptions.1.numberOfInstallments', 1);
                                 }
                               }}
-                              className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                              className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                             >
                               <option value="FLAT_MONTHLY">Cicilan Flat Bulanan</option>
                               <option value="BULLET">Pascapanen (Bullet)</option>
@@ -775,7 +763,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                               type="number"
                               disabled={watchFinancingOptions[1]?.repaymentStructure === 'BULLET'}
                               {...register('financingOptions.1.numberOfInstallments', { valueAsNumber: true })}
-                              className="border border-border p-2 rounded text-xs bg-white min-h-[38px] disabled:opacity-50 font-sans"
+                              className="border border-border p-2 rounded text-xs bg-white min-h-[44px] disabled:opacity-50 font-sans"
                             />
                           </div>
                           <div className="flex flex-col gap-1">
@@ -784,7 +772,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                               id="secondary-admin-fee"
                               type="number"
                               {...register('financingOptions.1.administrationFeeRupiah', { valueAsNumber: true })}
-                              className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-mono"
+                              className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-mono"
                             />
                           </div>
                         </div>
@@ -796,7 +784,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                               id="secondary-disburse-date"
                               type="date"
                               {...register('financingOptions.1.financingStartDate')}
-                              className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                              className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                             />
                           </div>
                           <div className="flex flex-col gap-1">
@@ -805,7 +793,7 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
                               id="secondary-repay-date"
                               type="date"
                               {...register('financingOptions.1.firstRepaymentDate')}
-                              className="border border-border p-2 rounded text-xs bg-white min-h-[38px] font-sans"
+                              className="border border-border p-2 rounded text-xs bg-white min-h-[44px] font-sans"
                             />
                           </div>
                         </div>
@@ -918,3 +906,4 @@ export function NewPlanForm({ initialData }: { initialData?: any }) {
     </div>
   );
 }
+

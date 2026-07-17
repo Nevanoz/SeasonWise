@@ -1,10 +1,11 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { calculatePlan } from '@musimaman/financial-engine';
 import { CalculationInput, CashFlowResult } from '@musimaman/shared-types';
 import { ArrowLeft, CheckCircle2, ShieldAlert, Award, FileText } from 'lucide-react';
+import { getGuestPlan } from '../../../../lib/guest-plans';
 
 export default function ComparePage() {
   const { planId } = useParams() as { planId: string };
@@ -13,19 +14,8 @@ export default function ComparePage() {
   const [basePlan, setBasePlan] = useState<any>(null);
 
   useEffect(() => {
-    const storageKey = 'musimaman:guest-plans:v1';
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const plans = JSON.parse(stored);
-        const plan = plans.find((p: any) => p.id === planId);
-        if (plan) {
-          setBasePlan(plan);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    const plan = getGuestPlan(planId);
+    if (plan) setBasePlan(plan);
     setLoading(false);
   }, [planId]);
 
@@ -39,7 +29,7 @@ export default function ComparePage() {
       schemaVersion: 1,
       engineVersion: '1.0.0',
       planStartDate: basePlan.cropPlan?.plantingDate || '2024-11-01',
-      planEndDate: addMonthsStr(basePlan.cropPlan?.plantingDate || '2024-11-01', 6),
+      planEndDate: addMonthsStr(basePlan.cropPlan?.plantingDate || '2024-11-01', 18),
       openingBalanceRupiah: basePlan.openingBalanceRupiah || 0,
       emergencyReserveRupiah: basePlan.emergencyReserveRupiah || 0,
       monthlyHouseholdExpenseRupiah: basePlan.monthlyHouseholdExpenseRupiah || 0,
@@ -176,18 +166,18 @@ export default function ComparePage() {
           <Award className="w-6 h-6" />
         </div>
         <div className="space-y-1">
-          <h2 className="text-sm font-bold text-text-primary">Rekomendasi Hasil Simulasi</h2>
+          <h2 className="text-sm font-bold text-text-primary">Ringkasan Perbandingan</h2>
           <p className="text-sm text-text-secondary leading-relaxed">
             {winner === 'NONE' 
               ? `Kedua skema ${reason}`
-              : `Struktur ${winner === 'A' ? 'A (' + optA.name + ')' : 'B (' + optB.name + ')'} relatif lebih tahan dalam simulasi ini karena ${reason}`}
+              : `Struktur ${winner === 'A' ? 'A (' + optA.name + ')' : 'B (' + optB.name + ')'} memiliki hasil simulasi yang berbeda karena ${reason}`}
           </p>
         </div>
       </div>
 
       {/* Side by side comparison table */}
-      <div className="bg-white border border-border rounded-xl overflow-hidden">
-        <table className="w-full text-sm text-left border-collapse">
+      <div className="bg-white border border-border rounded-xl overflow-x-auto">
+        <table className="w-full min-w-[720px] text-sm text-left border-collapse">
           <thead>
             <tr className="bg-background/25 border-b border-border text-[10px] uppercase font-bold text-text-secondary">
               <th className="p-4 w-1/3">Metrik Pembanding</th>
@@ -207,7 +197,7 @@ export default function ComparePage() {
               <td className="p-4">{(optB.interestRateBps / 100).toFixed(2)}% ({optB.interestPeriod === 'MONTHLY' ? 'Bulanan' : 'Tahunan'})</td>
             </tr>
             <tr>
-              <td className="p-4 font-bold text-text-secondary">Repayment Structure</td>
+              <td className="p-4 font-bold text-text-secondary">Struktur Pembayaran</td>
               <td className="p-4 bg-primary/5 border-x border-border font-bold">{optA.repaymentStructure === 'FLAT_MONTHLY' ? 'Cicilan Flat Bulanan' : 'Pascapanen (Bullet)'}</td>
               <td className="p-4 font-bold">{optB.repaymentStructure === 'FLAT_MONTHLY' ? 'Cicilan Flat Bulanan' : 'Pascapanen (Bullet)'}</td>
             </tr>
@@ -253,3 +243,4 @@ export default function ComparePage() {
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
 packages:
   - 'backend'
-  - 'apps/*'
+  - 'apps/web'
   - 'packages/*'
 allowBuilds:
   esbuild: true

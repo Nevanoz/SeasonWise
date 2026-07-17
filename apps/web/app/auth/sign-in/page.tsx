@@ -3,24 +3,30 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogIn, Mail, Lock } from 'lucide-react';
+import { requireSupabaseBrowserClient } from '../../../lib/supabase';
 
 export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'error' | 'offline'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
-
     setStatus('submitting');
-    setTimeout(() => {
-      // Mock login check
-      setStatus('idle');
-      alert('Berhasil masuk ke akun MusimAman!');
-      router.push('/saved');
-    }, 800);
+    setErrorMessage('');
+    try {
+      const client = requireSupabaseBrowserClient();
+      const { error } = await client.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) throw error;
+      router.replace('/saved');
+      router.refresh();
+    } catch (error) {
+      setStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Tidak dapat masuk. Periksa email dan kata sandi.');
+    }
   };
 
   return (
@@ -64,6 +70,9 @@ export default function SignInPage() {
             />
           </div>
         </div>
+        {errorMessage && (
+          <p role="alert" className="rounded-lg bg-red-50 p-3 text-xs text-red-700">{errorMessage}</p>
+        )}
 
         <button
           type="submit"

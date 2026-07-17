@@ -2,24 +2,36 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogIn, Mail, Lock, UserPlus } from 'lucide-react';
+import { Mail, Lock, UserPlus } from 'lucide-react';
+import { requireSupabaseBrowserClient } from '../../../lib/supabase';
 
 export default function SignUpPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'error' | 'offline'>('idle');
+  const [message, setMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
-
+    if (!email || password.length < 8) {
+      setStatus('error');
+      setMessage('Gunakan kata sandi minimal 8 karakter.');
+      return;
+    }
     setStatus('submitting');
-    setTimeout(() => {
+    setMessage('');
+    try {
+      const client = requireSupabaseBrowserClient();
+      const { data, error } = await client.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
+      if (error) throw error;
       setStatus('idle');
-      alert('Pendaftaran berhasil! Akun cloud Anda siap digunakan.');
-      router.push('/saved');
-    }, 800);
+      if (data.session) router.replace('/saved');
+      else setMessage('Pendaftaran berhasil. Periksa email untuk mengonfirmasi akun.');
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Pendaftaran gagal. Silakan coba lagi.');
+    }
   };
 
   return (
@@ -59,10 +71,14 @@ export default function SignUpPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="flex-1 p-2.5 text-xs bg-transparent focus:outline-none min-h-[44px]"
+              minLength={8}
               required
             />
           </div>
         </div>
+        {message && (
+          <p role="status" className={`rounded-lg p-3 text-xs ${status === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-800'}`}>{message}</p>
+        )}
 
         <button
           type="submit"

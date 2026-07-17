@@ -13,6 +13,8 @@ const EnvSchema = z.object({
   TRUST_PROXY: booleanString,
   SUPABASE_URL: optionalUrl,
   SUPABASE_PUBLISHABLE_KEY: z.string().default(""),
+  SUPABASE_SECRET_KEY: z.string().default(""),
+  SUPABASE_SERVICE_KEY: z.string().default(""),
   SUPABASE_SERVICE_ROLE_KEY: z.string().default(""),
   GROQ_API_KEY: z.string().default(""),
   GROQ_MODEL: z.string().min(1).default("openai/gpt-oss-20b"),
@@ -32,8 +34,11 @@ const EnvSchema = z.object({
   DEMO_DATA_VERSION: z.coerce.number().int().positive().default(1)
 }).superRefine((value, context) => {
   if (value.NODE_ENV !== "production") return;
-  for (const key of ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY", "LOG_HASH_SALT"] as const) {
+  for (const key of ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "LOG_HASH_SALT"] as const) {
     if (!value[key]) context.addIssue({ code: z.ZodIssueCode.custom, path: [key], message: `${key} is required in production` });
+  }
+  if (!(value.SUPABASE_SECRET_KEY || value.SUPABASE_SERVICE_ROLE_KEY || value.SUPABASE_SERVICE_KEY)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["SUPABASE_SECRET_KEY"], message: "A Supabase server secret is required in production" });
   }
   if (value.MARKET_PRICE_PROVIDER === "verified" && !value.MARKET_PRICE_BASE_URL) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ["MARKET_PRICE_BASE_URL"], message: "Required for verified market provider" });

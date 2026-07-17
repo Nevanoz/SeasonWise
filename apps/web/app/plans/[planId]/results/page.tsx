@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -11,6 +11,7 @@ import {
 import {
   ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea, ReferenceLine
 } from 'recharts';
+import { getGuestPlan } from '../../../../lib/guest-plans';
 
 export default function ResultsDashboard() {
   const { planId } = useParams() as { planId: string };
@@ -35,33 +36,20 @@ export default function ResultsDashboard() {
 
   // Fetch plan from localStorage
   useEffect(() => {
-    const storageKey = 'musimaman:guest-plans:v1';
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const plans = JSON.parse(stored);
-        const plan = plans.find((p: any) => p.id === planId);
-        if (plan) {
-          // Normalize structure to fit CalculationInput
-          const loanOption = plan.financingOptions && plan.financingOptions.length > 0 ? plan.financingOptions[0] : null;
-          
-          const normalizedInput: CalculationInput = {
-            schemaVersion: 1,
-            engineVersion: '1.0.0',
-            planStartDate: plan.cropPlan?.plantingDate || '2024-11-01',
-            // Plan end is 6 months from start
-            planEndDate: addMonthsStr(plan.cropPlan?.plantingDate || '2024-11-01', 6),
-            openingBalanceRupiah: plan.openingBalanceRupiah || 0,
-            emergencyReserveRupiah: plan.emergencyReserveRupiah || 0,
-            monthlyHouseholdExpenseRupiah: plan.monthlyHouseholdExpenseRupiah || 0,
-            cashFlowItems: plan.cashFlowItems || [],
-            financingOption: loanOption,
-          };
-          setBasePlan(normalizedInput);
-        }
-      }
-    } catch (e) {
-      console.error(e);
+    const plan = getGuestPlan(planId);
+    if (plan && plan.financingOptions.length) {
+      const normalizedInput: CalculationInput = {
+        schemaVersion: 1,
+        engineVersion: '1.0.0',
+        planStartDate: plan.cropPlan.plantingDate,
+        planEndDate: addMonthsStr(plan.cropPlan.plantingDate, 18),
+        openingBalanceRupiah: plan.openingBalanceRupiah,
+        emergencyReserveRupiah: plan.emergencyReserveRupiah,
+        monthlyHouseholdExpenseRupiah: plan.monthlyHouseholdExpenseRupiah,
+        cashFlowItems: plan.cashFlowItems,
+        financingOption: plan.financingOptions[0],
+      };
+      setBasePlan(normalizedInput);
     }
     setLoading(false);
   }, [planId]);
@@ -149,25 +137,7 @@ export default function ResultsDashboard() {
     };
   }, [basePlan, scenarioConfigs, stressMode]);
 
-  // External data references (BMKG & Bapanas)
-  const [priceData, setPriceData] = useState({
-    price: 7200,
-    source: 'Bapanas (Panel Harga)',
-    commodity: 'Padi Gabah Kering Panen',
-    lastChecked: 'Baru Saja',
-    status: 'cached' as const,
-  });
 
-  const handleApplyPriceAsAssumption = () => {
-    if (!basePlan) return;
-    // Update expectedSellingPriceRupiah
-    const updatedPlan = { ...basePlan };
-    if (updatedPlan.cashFlowItems) {
-      // Find harvest income and set it
-      // For this prototype, we show a success message to prove it works
-      alert(`Berhasil memperbarui harga asumsi menjadi Rp ${priceData.price.toLocaleString('id-ID')}/Kg berdasarkan data Bapanas.`);
-    }
-  };
 
   const handleSendChatMessage = () => {
     if (!chatInput.trim() || !calculations) return;
@@ -302,7 +272,7 @@ export default function ResultsDashboard() {
               <ul className="space-y-1.5">
                 {assessment.factors.map((f) => (
                   <li key={f.code} className="flex justify-between items-start gap-2">
-                    <span className="text-text-primary">• {f.explanationKey}</span>
+                    <span className="text-text-primary">â€¢ {f.explanationKey}</span>
                     <span className="font-bold text-red-600">-{f.deduction}</span>
                   </li>
                 ))}
@@ -332,7 +302,7 @@ export default function ResultsDashboard() {
                 key={scen.id}
                 type="button"
                 onClick={() => setStressMode(scen.id as any)}
-                className={`flex flex-col p-3 rounded-lg border text-left transition-all min-h-[70px] ${
+                className={`flex flex-col p-3 rounded-lg border text-left transition-colors min-h-[70px] ${
                   stressMode === scen.id 
                     ? 'border-primary bg-[#E8EFE8] text-primary' 
                     : 'border-border hover:border-primary/50 text-text-secondary'
@@ -460,60 +430,27 @@ export default function ResultsDashboard() {
 
       {/* External Data Panel & AI Chat Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* BMKG & Bapanas references */}
+        {/* External data status */}
         <div className="bg-white border border-border p-6 rounded-xl space-y-4">
           <h2 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
-            <Database className="w-4 h-4 text-primary" /> Data Pendukung Nasional
+            <Database aria-hidden="true" className="w-4 h-4 text-primary" /> Data eksternal
           </h2>
-
-          <div className="space-y-3 text-xs">
-            {/* BMKG Forecast Box */}
-            <div className="p-3 border border-border rounded-lg bg-background/5 space-y-1.5">
-              <div className="flex justify-between items-center">
-                <span className="font-bold">Cuaca BMKG (Garut)</span>
-                <span className="px-2 py-0.5 bg-[#E8EFE8] text-primary text-[9px] font-bold rounded uppercase">Terverifikasi</span>
-              </div>
-              <p className="text-text-secondary leading-relaxed">
-                Diperkirakan terjadi curah hujan sedang-tinggi pada awal November. Skenario Mild / Severe direkomendasikan untuk menakar risiko mundurnya masa panen padi.
-              </p>
-              <div className="text-[10px] text-text-secondary flex justify-between">
-                <span>Data: BMKG Prakiraan Cuaca</span>
-                <span>Diperbarui: Hari ini</span>
-              </div>
-            </div>
-
-            {/* Bapanas Market Price Box */}
-            <div className="p-3 border border-border rounded-lg bg-background/5 space-y-1.5">
-              <div className="flex justify-between items-center">
-                <span className="font-bold">Harga Bapanas (Pangan)</span>
-                <span className="px-2 py-0.5 bg-[#E8EFE8] text-primary text-[9px] font-bold rounded uppercase">Cached</span>
-              </div>
-              <div className="flex justify-between items-baseline">
-                <span className="text-text-secondary">Padi Gabah Kering:</span>
-                <span className="text-sm font-bold text-text-primary">Rp 7.200 / Kg</span>
-              </div>
-              <div className="text-[10px] text-text-secondary flex justify-between">
-                <span>Sumber: Badan Pangan Nasional</span>
-                <span>Tanggal: 2026-07-15</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleApplyPriceAsAssumption}
-                className="w-full mt-1 px-3 py-1.5 border border-primary text-primary hover:bg-primary/5 rounded font-bold transition-all min-h-[38px]"
-              >
-                Gunakan Sebagai Asumsi Harga
-              </button>
-            </div>
+          <div className="rounded-lg border border-border bg-background/5 p-4">
+            <p className="text-xs font-bold text-text-primary">Belum tersambung</p>
+            <p className="mt-2 text-xs leading-relaxed text-text-secondary">
+              Harga pasar dan prakiraan cuaca tidak ditampilkan sampai integrasi sumber resmi tersedia. Masukkan asumsi harga dan jadwal langsung pada rencana Anda.
+            </p>
+            <span className="mt-3 inline-flex rounded-full bg-background/25 px-2.5 py-1 text-[10px] font-bold uppercase text-text-secondary">Status: tidak tersedia</span>
           </div>
         </div>
 
-        {/* AI Chat Explanation Panel */}
+        {/* Local result explanation */}
         <div className="bg-white border border-border p-6 rounded-xl flex flex-col h-[350px] md:col-span-2">
           <div className="flex justify-between items-center border-b border-border pb-2 mb-3">
             <h2 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
-              <MessageSquare className="w-4 h-4 text-primary" /> Asisten Keuangan MusimAman
+              <MessageSquare className="w-4 h-4 text-primary" /> Penjelas Hasil MusimAman
             </h2>
-            <span className="text-[10px] font-medium text-text-secondary uppercase">Konsultasi AI</span>
+            <span className="text-[10px] font-medium text-text-secondary uppercase">Analisis lokal</span>
           </div>
 
           {/* Messages list */}
@@ -554,3 +491,5 @@ export default function ResultsDashboard() {
     </div>
   );
 }
+
+

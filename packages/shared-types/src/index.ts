@@ -47,6 +47,25 @@ export interface PlanFormValues {
   notes?: string;
 }
 
+export interface ApiEnvelope<T> {
+  data: T;
+  meta: { requestId: string; timestamp: string };
+}
+
+export interface MarketPriceResult {
+  commodity: CropType;
+  region: string;
+  unit: string;
+  priceRupiah: number | null;
+  rangeRupiah: { lowRupiah: number; highRupiah: number } | null;
+  source: string;
+  dataDate: string | null;
+  lastCheckedAt: string;
+  status: "live" | "cached" | "mock" | "unavailable";
+  stale: boolean;
+  synthetic: boolean;
+  canAutofill: boolean;
+}
 export interface FinancingOptionInput {
   id: string;
   name: string;

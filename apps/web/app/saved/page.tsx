@@ -1,8 +1,10 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Trash2, Copy, Edit3, ArrowRight, Eye, ShieldAlert, Cloud, Info } from 'lucide-react';
+import { deleteGuestPlan, duplicateGuestPlan, loadGuestPlans, type StoredPlan } from '../../lib/guest-plans';
+import { apiRequest, toBackendPlan, type CloudPlanList, type CloudPlanSummary } from '../../lib/api';
 
 export default function SavedPlansPage() {
   const router = useRouter();
@@ -10,56 +12,63 @@ export default function SavedPlansPage() {
   const [activeTab, setActiveTab] = useState<'local' | 'cloud'>('local');
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
+  const [cloudPlans, setCloudPlans] = useState<CloudPlanSummary[]>([]);
+  const [cloudStatus, setCloudStatus] = useState<'idle' | 'loading' | 'error'>('idle');
 
   useEffect(() => {
     loadLocalPlans();
   }, []);
+  useEffect(() => {
+    if (activeTab === 'cloud') void loadCloudPlans();
+  }, [activeTab]);
+
 
   const loadLocalPlans = () => {
-    const storageKey = 'musimaman:guest-plans:v1';
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        setPlans(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    setPlans(loadGuestPlans());
   };
 
   const handleDeletePlan = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('Apakah Anda yakin ingin menghapus rencana simulasi ini?')) return;
-
-    const storageKey = 'musimaman:guest-plans:v1';
-    const updated = plans.filter((p: any) => p.id !== id);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-    setPlans(updated);
+    deleteGuestPlan(id);
+    loadLocalPlans();
   };
 
-  const handleDuplicatePlan = (plan: any, e: React.MouseEvent) => {
+  const handleDuplicatePlan = (plan: StoredPlan, e: React.MouseEvent) => {
     e.stopPropagation();
-    const storageKey = 'musimaman:guest-plans:v1';
-    const duplicated = {
-      ...plan,
-      id: 'plan-' + Math.random().toString(36).substring(2, 9),
-      title: `${plan.title} (Salinan)`,
-      updatedAt: new Date().toISOString(),
-    };
-    const updated = [...plans, duplicated];
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-    setPlans(updated);
+    duplicateGuestPlan(plan.id);
+    loadLocalPlans();
   };
 
-  const handleMigrateToCloud = () => {
+  const loadCloudPlans = async () => {
+    setCloudStatus('loading');
+    try {
+      const data = await apiRequest<CloudPlanList>('/plans');
+      setCloudPlans(data.plans);
+      setCloudStatus('idle');
+    } catch {
+      setCloudStatus('error');
+    }
+  };
+
+  const handleMigrateToCloud = async () => {
     if (!consentChecked) {
       alert('Anda harus memberikan izin persetujuan pemindahan data terlebih dahulu.');
       return;
     }
-    // Perform mock cloud migration
-    alert('Rencana simulasi lokal Anda berhasil dimigrasikan ke cloud MusimAman!');
-    setShowConsentModal(false);
-    setActiveTab('cloud');
+    setCloudStatus('loading');
+    try {
+      for (const plan of plans as StoredPlan[]) {
+        await apiRequest('/plans', { method: 'POST', body: JSON.stringify({ plan: toBackendPlan(plan), source: 'guest_migration' }) });
+      }
+      await loadCloudPlans();
+      setShowConsentModal(false);
+      setConsentChecked(false);
+      setActiveTab('cloud');
+    } catch (error) {
+      setCloudStatus('error');
+      alert(error instanceof Error ? error.message : 'Migrasi cloud gagal.');
+    }
   };
 
   return (
@@ -104,7 +113,7 @@ export default function SavedPlansPage() {
       <div className="flex border-b border-border">
         <button
           onClick={() => setActiveTab('local')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
             activeTab === 'local' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-text-secondary hover:text-text-primary'
@@ -114,13 +123,13 @@ export default function SavedPlansPage() {
         </button>
         <button
           onClick={() => setActiveTab('cloud')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
             activeTab === 'cloud' 
               ? 'border-primary text-primary' 
               : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
-          Rencana Awan (Cloud - 0)
+          Rencana Awan (Cloud - {cloudPlans.length})
         </button>
       </div>
 
@@ -132,7 +141,10 @@ export default function SavedPlansPage() {
               <div
                 key={plan.id}
                 onClick={() => router.push(`/plans/${plan.id}/results`)}
-                className="bg-white border border-border p-6 rounded-xl hover:border-primary transition-all duration-300 cursor-pointer flex flex-col justify-between gap-4"
+                onKeyDown={(event) => { if (event.key === "Enter") router.push("/plans/" + plan.id + "/results"); }}
+                role="link"
+                tabIndex={0}
+                className="bg-white border border-border p-6 rounded-xl hover:border-primary transition-colors duration-300 cursor-pointer flex flex-col justify-between gap-4"
               >
                 <div className="space-y-2">
                   <div className="flex justify-between items-start gap-2">
@@ -161,22 +173,22 @@ export default function SavedPlansPage() {
                         e.stopPropagation();
                         router.push(`/plans/${plan.id}/edit`);
                       }}
-                      className="p-2 border border-border rounded-lg bg-white text-text-secondary hover:bg-background/25"
-                      title="Edit Data"
+                      className="min-h-[44px] min-w-[44px] p-2 border border-border rounded-lg bg-white text-text-secondary hover:bg-background/25"
+                      aria-label="Edit rencana" title="Edit Data"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={(e) => handleDuplicatePlan(plan, e)}
-                      className="p-2 border border-border rounded-lg bg-white text-text-secondary hover:bg-background/25"
-                      title="Duplikat"
+                      className="min-h-[44px] min-w-[44px] p-2 border border-border rounded-lg bg-white text-text-secondary hover:bg-background/25"
+                      aria-label="Duplikat rencana" title="Duplikat"
                     >
                       <Copy className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={(e) => handleDeletePlan(plan.id, e)}
-                      className="p-2 border border-border rounded-lg bg-white text-red-600 hover:bg-red-50"
-                      title="Hapus"
+                      className="min-h-[44px] min-w-[44px] p-2 border border-border rounded-lg bg-white text-red-600 hover:bg-red-50"
+                      aria-label="Hapus rencana" title="Hapus"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -201,39 +213,40 @@ export default function SavedPlansPage() {
           </div>
         )
       ) : (
-        <div className="bg-white border border-border p-12 rounded-xl text-center space-y-4">
-          <Cloud className="w-12 h-12 text-text-secondary opacity-40 mx-auto" />
-          <h3 className="font-bold text-text-primary text-sm">Belum Ada Rencana Cloud</h3>
-          <p className="text-xs text-text-secondary max-w-sm mx-auto">
-            Silakan masuk atau daftar akun untuk menyinkronkan data Anda ke cloud server.
-          </p>
-          <div className="flex justify-center gap-3">
-            <button
-              onClick={() => router.push('/auth/sign-in')}
-              className="px-4 py-2 border border-border rounded-lg text-sm font-bold hover:bg-background/20 min-h-[44px]"
-            >
-              Masuk Akun
-            </button>
-            <button
-              onClick={() => router.push('/auth/sign-up')}
-              className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:opacity-90 min-h-[44px]"
-            >
-              Daftar Akun
-            </button>
-          </div>
+        <div className="bg-white border border-border p-8 rounded-xl space-y-4">
+          <Cloud className="w-10 h-10 text-primary mx-auto" />
+          {cloudStatus === 'loading' ? (
+            <p role="status" className="text-center text-xs text-text-secondary">Memuat rencana cloud...</p>
+          ) : cloudStatus === 'error' ? (
+            <div className="text-center space-y-3">
+              <p role="alert" className="text-xs text-red-700">Masuk terlebih dahulu atau periksa koneksi backend.</p>
+              <button onClick={() => router.push('/auth/sign-in')} className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold min-h-[44px]">Masuk Akun</button>
+            </div>
+          ) : cloudPlans.length ? (
+            <div className="divide-y divide-border">
+              {cloudPlans.map((plan) => (
+                <div key={plan.id} className="flex items-center justify-between gap-4 py-4">
+                  <div><h3 className="text-sm font-bold text-text-primary">{plan.title}</h3><p className="text-xs text-text-secondary">Diperbarui {new Date(plan.updated_at).toLocaleDateString('id-ID')}</p></div>
+                  <span className="rounded-full bg-[#E8EFE8] px-3 py-1 text-[10px] font-bold uppercase text-primary">Cloud</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-xs text-text-secondary">Belum ada rencana cloud. Migrasikan rencana lokal setelah masuk.</p>
+          )}
         </div>
       )}
 
       {/* Consent Modal Dialog */}
       {showConsentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white border border-border p-6 rounded-xl max-w-md w-full space-y-4 shadow-xl">
+          <div role="dialog" aria-modal="true" aria-labelledby="consent-title" className="bg-white border border-border p-6 rounded-xl max-w-md w-full space-y-4 shadow-xl">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-yellow-50 text-[#986924] rounded-lg">
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-text-primary">Konfirmasi Izin Pemindahan</h3>
+                <h3 id="consent-title" className="text-sm font-bold text-text-primary">Konfirmasi Izin Pemindahan</h3>
                 <p className="text-xs text-text-secondary leading-relaxed">
                   Semua rencana simulasi yang saat ini tersimpan di browser lokal Anda akan diunggah ke server cloud MusimAman. Tindakan ini memerlukan otentikasi akun.
                 </p>
@@ -277,3 +290,5 @@ export default function SavedPlansPage() {
     </div>
   );
 }
+
+

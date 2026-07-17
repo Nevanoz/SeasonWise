@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { saveGuestPlan, type StoredPlan } from '../../lib/guest-plans';
 
 export default function DemoPage() {
   const router = useRouter();
@@ -9,8 +10,9 @@ export default function DemoPage() {
   useEffect(() => {
     // Generate mock seed plan
     const demoPlanId = 'demo-padi-garut';
-    const demoPlan = {
+    const demoPlan: Omit<StoredPlan, 'updatedAt'> = {
       id: demoPlanId,
+      schemaVersion: 1,
       title: 'Rencana Panen Padi Sawah - Demo Garut',
       provinceCode: '32', // Jawa Barat
       regencyCode: '3205', // Garut
@@ -18,6 +20,8 @@ export default function DemoPage() {
       cropPlan: {
         cropType: 'rice',
         plantingDate: '2024-11-01',
+        estimatedHarvestDate: '2025-02-20',
+        cycleDurationDays: 111,
         expectedHarvestQuantity: 5.5,
         quantityUnit: 'Ton',
         expectedSellingPriceRupiah: 7000000,
@@ -112,24 +116,9 @@ export default function DemoPage() {
       notes: 'Rencana tanam padi sawah percontohan untuk demo fitur MusimAman.',
     };
 
-    // Save to guest storage
-    const storageKey = 'musimaman:guest-plans:v1';
-    let existingPlans = [];
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        existingPlans = JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    // Filter out existing demo plan if any, then add
-    existingPlans = existingPlans.filter((p: any) => p.id !== demoPlanId);
-    existingPlans.push(demoPlan);
-
-    localStorage.setItem(storageKey, JSON.stringify(existingPlans));
-    localStorage.setItem('musimaman:active-plan-id', demoPlanId);
+    saveGuestPlan(demoPlan);
+    try { localStorage.setItem('musimaman:active-plan-id', demoPlanId); }
+    catch { /* in-memory fallback remains usable */ }
 
     // Redirect to results dashboard
     router.push(`/plans/${demoPlanId}/results`);

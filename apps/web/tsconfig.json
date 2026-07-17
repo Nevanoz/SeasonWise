@@ -19,7 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@musimaman/config": ["../../packages/config/src/index.ts"],
+      "@musimaman/financial-engine": ["../../packages/financial-engine/src/index.ts"],
+      "@musimaman/shared-types": ["../../packages/shared-types/src/index.ts"],
+      "@musimaman/validation": ["../../packages/validation/src/index.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

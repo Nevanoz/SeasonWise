@@ -3,7 +3,11 @@ import { z } from "zod";
 // Helper for ISO Date string validation (YYYY-MM-DD)
 const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
   message: "Format tanggal harus YYYY-MM-DD",
-});
+}).refine((value) => {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}, "Tanggal tidak valid");
 
 // Helper for currency values which must be non-negative safe integers
 const safeRupiahSchema = z
@@ -17,7 +21,7 @@ const safeRupiahSchema = z
 export const RegionSelectionSchema = z.object({
   provinceCode: z.string().min(1, "Provinsi harus dipilih"),
   regencyCode: z.string().min(1, "Kabupaten/Kota harus dipilih"),
-  districtCode: z.string().nullable().optional(),
+  districtCode: z.string().nullable().default(null),
 });
 
 export const CropPlanInputSchema = z
@@ -119,7 +123,7 @@ export const PlanFormValuesSchema = z
     title: z.string().min(1, "Judul rencana harus diisi").max(100, "Judul maksimal 100 karakter"),
     provinceCode: z.string().min(1, "Provinsi harus dipilih"),
     regencyCode: z.string().min(1, "Kabupaten/Kota harus dipilih"),
-    districtCode: z.string().nullable().optional(),
+    districtCode: z.string().nullable().default(null),
     cropPlan: CropPlanInputSchema,
     cashFlowItems: z.array(CashFlowItemFormSchema),
     monthlyHouseholdExpenseRupiah: safeRupiahSchema,
@@ -172,14 +176,14 @@ export const CalculationInputSchema = z.object({
 });
 
 export const ChatContextSchema = z.object({
-  page: z.string(),
-  cropPlanSummary: z.any().optional(),
-  financingSummary: z.any().optional(),
-  expectedResult: z.any().optional(),
-  scenarioResults: z.array(z.any()).optional(),
-  comparisonResult: z.any().optional(),
-  externalDataSummary: z.any().optional(),
-  allowedKnowledgeSections: z.array(z.string()),
+  page: z.enum(["results", "compare", "report"]),
+  cropPlanSummary: z.record(z.unknown()).optional(),
+  financingSummary: z.record(z.unknown()).optional(),
+  expectedResult: z.record(z.unknown()).optional(),
+  scenarioResults: z.array(z.record(z.unknown())).optional(),
+  comparisonResult: z.record(z.unknown()).optional(),
+  externalDataSummary: z.record(z.unknown()).optional(),
+  allowedKnowledgeSections: z.array(z.enum(["cash_gap", "repayment_timing", "scenario", "comparison", "external_data", "assumptions", "risk_assessment", "disclaimer"])),
 });
 
 export const ChatRequestSchema = z.object({
@@ -198,6 +202,7 @@ export const ChatResponseSchema = z.object({
       "comparison",
       "external_data",
       "assumptions",
+      "risk_assessment",
       "disclaimer",
     ])
   ).max(6),

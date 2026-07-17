@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { AlertCircle } from 'lucide-react';
 
 export default function DisclaimerPage() {

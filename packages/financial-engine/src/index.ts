@@ -164,8 +164,15 @@ function roundRupiah(x: number): Rupiah {
 }
 
 /** Compute simple hash checksum for stable fingerprinting of input. */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`).join(",")}}`;
+}
+
 function computeChecksum(input: CalculationInput): string {
-  const str = JSON.stringify(input, Object.keys(input).sort());
+  const str = stableStringify(input);
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
@@ -463,7 +470,7 @@ function computeBreakEven(
   const breakEvenHarvestIncomeRupiah = Math.max(0, -endingBalanceZero);
 
   // Pre-harvest liquidity required: worst running balance before first harvest month
-  const firstHarvestItem = input.cashFlowItems.find((item) => item.isHarvestIncome);
+  const firstHarvestItem = input.cashFlowItems.filter((item) => item.isHarvestIncome).sort((a, b) => a.timingDate.localeCompare(b.timingDate))[0];
   let preHarvestLiquidityRequiredRupiah = 0;
   if (firstHarvestItem) {
     const firstHarvestMonth = toYearMonth(firstHarvestItem.timingDate);

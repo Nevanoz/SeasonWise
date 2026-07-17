@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { NewPlanForm } from '../../../../components/NewPlanForm';
+import { getGuestPlan } from '../../../../lib/guest-plans';
 
 export default function EditPlanPage() {
   const router = useRouter();
@@ -11,19 +12,8 @@ export default function EditPlanPage() {
   const [planData, setPlanData] = useState<any>(null);
 
   useEffect(() => {
-    const storageKey = 'musimaman:guest-plans:v1';
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const plans = JSON.parse(stored);
-        const plan = plans.find((p: any) => p.id === planId);
-        if (plan) {
-          setPlanData(plan);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    const plan = getGuestPlan(planId);
+    if (plan) setPlanData(plan);
     setLoading(false);
   }, [planId]);
 
