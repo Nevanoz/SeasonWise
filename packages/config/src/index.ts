@@ -14,6 +14,10 @@ export interface CropTemplate {
   defaultSellingPriceRupiah: number;
   defaultYieldQuantity: number; // e.g. per hectare
   phases: ProductionPhaseTemplate[];
+  // Backwards compatibility fields for frontend
+  expectedYieldPerHa: number;
+  expectedSellingPriceRupiah: number;
+  cycleDurationMonths: number;
 }
 
 export const CROP_TEMPLATES: Record<string, CropTemplate> = {
@@ -24,6 +28,9 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
     quantityUnit: "kg",
     defaultSellingPriceRupiah: 6500,
     defaultYieldQuantity: 5000,
+    expectedYieldPerHa: 5000,
+    expectedSellingPriceRupiah: 6500,
+    cycleDurationMonths: 4,
     phases: [
       { name: "Persiapan Lahan (Land Prep)", startDay: 1, endDay: 15, costPercent: 20, description: "Pengolahan tanah and pembajakan sawah" },
       { name: "Penanaman & Pemupukan Awal", startDay: 16, endDay: 30, costPercent: 30, description: "Penyemaian bibit and pemupukan dasar" },
@@ -38,6 +45,9 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
     quantityUnit: "kg",
     defaultSellingPriceRupiah: 4500,
     defaultYieldQuantity: 6000,
+    expectedYieldPerHa: 6000,
+    expectedSellingPriceRupiah: 4500,
+    cycleDurationMonths: 4,
     phases: [
       { name: "Persiapan Lahan", startDay: 1, endDay: 10, costPercent: 15 },
       { name: "Penanaman & Pembubunan", startDay: 11, endDay: 25, costPercent: 35 },
@@ -52,6 +62,9 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
     quantityUnit: "kg",
     defaultSellingPriceRupiah: 25000,
     defaultYieldQuantity: 3000,
+    expectedYieldPerHa: 3000,
+    expectedSellingPriceRupiah: 25000,
+    cycleDurationMonths: 5,
     phases: [
       { name: "Penyemaian & Bedengan", startDay: 1, endDay: 30, costPercent: 25 },
       { name: "Penanaman & Pemasangan Lanjaran", startDay: 31, endDay: 60, costPercent: 30 },
@@ -66,6 +79,9 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
     quantityUnit: "kg",
     defaultSellingPriceRupiah: 40000,
     defaultYieldQuantity: 1500,
+    expectedYieldPerHa: 1500,
+    expectedSellingPriceRupiah: 40000,
+    cycleDurationMonths: 12,
     phases: [
       { name: "Pemangkasan & Pemupukan Pasca-Panen", startDay: 1, endDay: 60, costPercent: 20 },
       { name: "Perawatan Pohon & Penyiangan", startDay: 61, endDay: 240, costPercent: 40 },
@@ -78,8 +94,11 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
     name: "Kelapa Sawit (Palm Oil) - Estimasi Bulanan TBS",
     defaultCycleDays: 30,
     quantityUnit: "ton",
-    defaultSellingPriceRupiah: 2500000, // Per Ton
+    defaultSellingPriceRupiah: 2500000,
     defaultYieldQuantity: 2,
+    expectedYieldPerHa: 2,
+    expectedSellingPriceRupiah: 2500000,
+    cycleDurationMonths: 1,
     phases: [
       { name: "Pembersihan Piringan & Pasar Pikul", startDay: 1, endDay: 10, costPercent: 30 },
       { name: "Kastrasi & Pemupukan TBS", startDay: 11, endDay: 20, costPercent: 40 },
