@@ -31,6 +31,7 @@ export const CropPlanInputSchema = z
     expectedHarvestQuantity: z.number().nonnegative("Kuantitas panen tidak boleh negatif"),
     quantityUnit: z.string().min(1, "Satuan kuantitas harus diisi"),
     expectedSellingPriceRupiah: safeRupiahSchema,
+    expectedTotalHarvestIncomeRupiah: safeRupiahSchema.optional(),
   })
   .refine(
     (data) => {

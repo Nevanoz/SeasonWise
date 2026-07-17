@@ -19,6 +19,7 @@ export interface CropPlanInput {
   expectedHarvestQuantity: number;
   quantityUnit: string;
   expectedSellingPriceRupiah: CurrencyRupiah;
+  expectedTotalHarvestIncomeRupiah?: CurrencyRupiah;
 }
 
 export interface CashFlowItemForm {
