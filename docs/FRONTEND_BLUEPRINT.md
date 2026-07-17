@@ -209,7 +209,7 @@ Render `DataStatusBadge` untuk `live`, `cached`, `mock`, `unavailable`. Selalu t
 - warning bila stale;
 - tombol “Gunakan sebagai asumsi” yang hanya mengisi field setelah confirmation.
 
-BMKG hanya menyarankan scenario toggle. Market price hanya menyarankan editable selling price. Tidak ada silent mutation.
+Market price hanya menyarankan editable selling price. Tidak ada silent mutation.
 
 ## 11. AI chat UI
 
@@ -249,7 +249,7 @@ BMKG hanya menyarankan scenario toggle. Market price hanya menyarankan editable 
 | Failure | UI response |
 |---|---|
 | API offline | Calculator tetap aktif; cloud/chat/external panel show offline |
-| BMKG timeout | Cached then mock; source status visible |
+| Market-price timeout | Cached then mock; source status visible |
 | Price unavailable | Editable manual field; dated fallback card |
 | Groq timeout/429 | Template explanation |
 | Supabase unavailable | Guest save; cloud action retryable |

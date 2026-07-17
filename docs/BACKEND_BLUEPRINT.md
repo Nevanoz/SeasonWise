@@ -16,22 +16,14 @@ src/
 ├── routes/
 │   ├── health.ts
 │   ├── plans.ts
-│   ├── calculate.ts
-│   ├── scenarios.ts
-│   ├── compare.ts
-│   ├── weather.ts
 │   ├── market-prices.ts
 │   └── chat.ts
 ├── services/
 │   ├── plan-service.ts
-│   ├── calculation-service.ts
 │   ├── external-data-service.ts
 │   └── chat-service.ts
 ├── providers/
-│   ├── weather-provider.ts
-│   ├── bmkg-weather-provider.ts
 │   ├── market-price-provider.ts
-│   ├── verified-price-provider.ts
 │   └── mock-providers.ts
 ├── plugins/
 │   ├── auth.ts
@@ -41,7 +33,6 @@ src/
 │   ├── request-id.ts
 │   └── supabase.ts
 └── mocks/
-    ├── weather.json
     └── market-prices.json
 ```
 
@@ -93,26 +84,10 @@ interface ProviderMetadata {
   attributionUrl?: string;
 }
 
-interface WeatherProvider {
-  getWeatherContext(input: WeatherQuery): Promise<WeatherContext>;
-}
-
 interface MarketPriceProvider {
   getCommodityPrice(input: CommodityPriceQuery): Promise<CommodityPriceContext>;
 }
 ```
-
-### BMKG flow
-
-1. Map selected region to verified `adm4` from versioned config.
-2. Read cache key `weather:{adm4}`.
-3. If fresh (<6 hours), return `cached`.
-4. Otherwise call official endpoint with 3.5-second timeout and one retry only for network/5xx.
-5. Validate and normalize temperature, humidity, rain/weather description, wind, timestamps.
-6. Store normalized snapshot; include mandatory BMKG attribution.
-7. If call fails, return stale cache with warning; otherwise demo mock; otherwise `unavailable`.
-
-Do not retry 4xx. Respect official 60 requests/minute/IP by internal provider limit ≤30/minute and cache.
 
 ### Market-price flow
 
@@ -131,7 +106,7 @@ Only enable live provider when those checks pass. Normalize to `IDR_PER_KG` wher
 
 API builds allowlisted `ChatContext`; raw plan notes, receipt text, email, and identifiers are excluded. Maximum user message 1,200 chars; context JSON size target <12 KB; timeout 8 seconds; one schema retry; per-user/IP limit 5/minute.
 
-Use Groq Structured Outputs when supported by `GROQ_MODEL`, with all properties required and `additionalProperties: false`; validate again with Zod. `store: false`. If provider fails, use `explainResultWithTemplate()`.
+Use Groq strict Structured Outputs for the documented default `openai/gpt-oss-20b`, with all properties required and `additionalProperties: false`; validate again with Zod. The Chat Completions API currently does not support the `store` parameter, so it is omitted. If provider fails, use `explainResultWithTemplate()`.
 
 See [AI_INTEGRATION.md](./AI_INTEGRATION.md).
 
@@ -140,7 +115,7 @@ See [AI_INTEGRATION.md](./AI_INTEGRATION.md).
 - CORS allowlist: production web origin and explicit localhost.
 - `Content-Type: application/json`; request body max 100 KB; chat max 20 KB.
 - Security headers through `@fastify/helmet`.
-- Rate limits: public calculate 30/min/IP; weather/price 20/min/IP; chat 5/min/user or IP; auth/plan 60/min/user.
+- Rate limits: public calculate 30/min/IP; market price 20/min/IP; chat 5/min/user or IP; auth/plan 60/min/user.
 - Validate environment at startup; fail closed if production origins or Supabase keys missing.
 - No `eval`, no user-supplied JSON Schema, no raw HTML.
 - Sanitize log fields; never log request body for plan/chat routes.
@@ -225,7 +200,6 @@ Do not log:
   "checks": {
     "api": "ok",
     "supabase": "ok",
-    "bmkg": "unknown",
     "marketPrice": "mock",
     "groq": "unknown"
   },

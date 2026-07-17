@@ -12,7 +12,7 @@ MusimAman adalah web app simulasi arus kas musiman untuk membantu petani kecil I
 - **Pembiayaan:** Perbandingan skenario cicilan bulanan flat vs pascapanen (bullet).
 - **Mesin Finansial Deterministik:** Perhitungan saldo bulanan, gap cash flow, dan rasio kemampuan membayar secara presisi.
 - **Skenario Stress:** Simulasi skenario Expected, Mild, Severe, Custom, dan Combined.
-- **Integrasi Data Eksternal:** Konteks cuaca dari BMKG dan referensi harga pasar komoditas.
+- **Integrasi Data Eksternal:** Referensi harga pasar komoditas dengan status sumber yang jelas.
 - **AI Chat Explanation:** Asisten chat interaktif yang ditenagai Groq untuk menjelaskan hasil kalkulasi tanpa mengubah angka keuangan.
 
 ## Struktur Repositori
@@ -21,13 +21,12 @@ MusimAman adalah web app simulasi arus kas musiman untuk membantu petani kecil I
 musimaman/
 ├── apps/
 │   ├── web/        # Next.js Frontend
-│   └── api/        # Fastify API (Backend)
 ├── packages/
 │   ├── financial-engine/   # Pure TypeScript calculation engine
 │   ├── shared-types/       # Shared TypeScript types/interfaces
 │   ├── validation/         # Zod schemas for form validation
 │   └── config/             # Config variables & templates
-├── supabase/       # Supabase PostgreSQL schema, migrations & seed
+├── backend/       # Fastify API, Supabase migrations/seed, providers & tests
 └── docs/           # Architecture diagrams, blueprints & documents
 ```
 

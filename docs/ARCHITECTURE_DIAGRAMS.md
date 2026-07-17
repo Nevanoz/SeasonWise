@@ -10,7 +10,6 @@ flowchart LR
   W --> E["Deterministic Financial Engine"]
   W --> A["MusimAman API"]
   A --> S["Supabase"]
-  A --> B["BMKG"]
   A --> P["Verified Market Price Source"]
   A --> G["Groq"]
 ```
@@ -78,11 +77,11 @@ sequenceDiagram
   D-->>W: Owned cloud plan
 ```
 
-## 5. BMKG and market-price integration
+## 5. Market-price integration
 
 ```mermaid
 flowchart TD
-  Q["Weather / price query"] --> H{"Fresh cache?"}
+  Q["Market-price query"] --> H{"Fresh cache?"}
   H -->|Yes| C["Return cached + timestamp"]
   H -->|No| L["Call verified live provider"]
   L --> V{"Schema, unit, region valid?"}
@@ -169,7 +168,6 @@ flowchart LR
   VE --> RW
   VE --> SA["Supabase Auth"]
   RW --> DB["Supabase PostgreSQL"]
-  RW --> BM["BMKG Open Data"]
   RW --> MP["Verified Price Provider"]
   RW --> GR["Groq API"]
   RW --> MO["Versioned Mock Data"]

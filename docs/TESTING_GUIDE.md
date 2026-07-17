@@ -138,8 +138,8 @@ For generated valid inputs:
 - request body not present in logs;
 - CORS rejects unknown production origin;
 - rate limit returns 429 and retry metadata;
-- BMKG timeout → cached/mock/unavailable envelope;
-- malformed BMKG/price payload rejected;
+- market-price timeout → cached/mock/unavailable envelope;
+- malformed market-price payload rejected;
 - stale cache never labeled live;
 - price unit mismatch sets `canAutofill=false`;
 - Groq malformed JSON → retry/template;

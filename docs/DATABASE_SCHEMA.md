@@ -169,7 +169,7 @@ create table public.external_data_snapshots (
   plan_id uuid references public.plans(id) on delete cascade,
   owner_id uuid references auth.users(id) on delete cascade,
   provider text not null,
-  data_type text not null check (data_type in ('weather','market_price')),
+  data_type text not null check (data_type = 'market_price'),
   region_code text not null,
   commodity text,
   source text not null,

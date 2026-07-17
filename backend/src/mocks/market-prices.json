@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "dataDate": "2026-07-01",
+  "source": "Synthetic MusimAman demo dataset",
+  "prices": [
+    { "commodity": "rice", "provinceCode": "32", "region": "Jawa Barat", "unit": "IDR_PER_KG", "priceRupiah": 6500, "lowRupiah": 6200, "highRupiah": 6800 },
+    { "commodity": "corn", "provinceCode": "32", "region": "Jawa Barat", "unit": "IDR_PER_KG", "priceRupiah": 5200, "lowRupiah": 4900, "highRupiah": 5500 },
+    { "commodity": "chili", "provinceCode": "32", "region": "Jawa Barat", "unit": "IDR_PER_KG", "priceRupiah": 42000, "lowRupiah": 36000, "highRupiah": 48000 }
+  ]
+}

@@ -26,7 +26,7 @@ Do not hand-edit displayed outputs. Adjust seed inputs, run engine, verify tests
 | 0:40–0:58 | “Pada skenario yang diharapkan, rencana masih memiliki saldo minimum yang dapat dilihat di sini. Semua angka dihitung oleh deterministic TypeScript engine, bukan AI.” | Open result; highlight running-balance line, repayment markers, minimum balance | No major gap; engine/version visible | Browser engine |
 | 0:58–1:20 | “Sekarang panen kami geser satu bulan. Ini simulasi, bukan prediksi. Kewajiban pembayaran tetap jatuh sebelum pendapatan panen, sehingga muncul gap.” | Enable **Panen terlambat 1 bulan**; show gap; ask chat “Mengapa gap terjadi?” | Chart crosses zero; first gap and max gap visible; concise explanation | If Groq fails click **Gunakan penjelasan berbasis aturan** |
 | 1:20–1:40 | “Kami bandingkan struktur cicilan bulanan dengan pembayaran pascapanen. Jumlah dan waktu pembayaran terlihat transparan; MusimAman tidak memilih lender.” | Open comparison; focus worst-scenario gap and payment timing | Option B changes gap; reason codes visible | Local engine |
-| 1:40–1:52 | “BMKG dan referensi harga hanya memberi konteks. Sumber, tanggal, dan status live atau fallback selalu terlihat, dan pengguna sendiri yang memilih memasukkannya ke skenario.” | External-data panel; data badges; open report preview | Attribution/timestamps/simulation warning/report | Show cached/mock cards |
+| 1:40–1:52 | “Referensi harga hanya memberi konteks. Sumber, tanggal, dan status live atau fallback selalu terlihat, dan pengguna sendiri yang memilih memasukkannya sebagai asumsi.” | External-data panel; data badges; open report preview | Attribution/timestamps/simulation warning/report | Show cached/mock cards |
 | 1:52–2:00 | “MusimAman membantu petani memahami risiko musiman sebelum utang menjadi krisis.” | Return to concise impact screen/logo | Product name, value, repository/deployment QR if real links exist | No API |
 
 Keep cursor movements slow and prepare tabs before recording. Do not show sign-up unless judging specifically asks; guest-first is a product advantage.
@@ -64,7 +64,7 @@ Agricultural seasonality, household minimum expenses, transparent timing gap, sc
 
 ### Indonesia focus
 
-Bahasa Indonesia, rupiah integer, five crop templates, province/regency input, mobile-first/low-bandwidth guest mode, BMKG attribution, assisted use by cooperative staff.
+Bahasa Indonesia, rupiah integer, five crop templates, province/regency input, mobile-first/low-bandwidth guest mode, transparent price-source status, assisted use by cooperative staff.
 
 ### Architecture
 
@@ -84,7 +84,7 @@ Groq only rewrites validated results; structured context, strict scope, number v
 
 ### External data
 
-List BMKG endpoint/attribution/status. For prices, name only the source actually integrated and state whether live/cached/mock. Never call mock data live.
+For prices, name only the source actually integrated and state whether live/cached/mock. Never call mock data live.
 
 ### Responsible design
 
@@ -128,7 +128,6 @@ Create `docs/SOURCES.md` with:
 
 | Resource | Purpose | URL/version | License/terms | Access date | Shipped status |
 |---|---|---|---|---|---|
-| BMKG forecast | Weather context | Official endpoint | Attribution required | YYYY-MM-DD | live/cached/mock |
 | Bapanas/BPS/etc. | Price reference | Exact dataset | Verified terms | YYYY-MM-DD | live/snapshot/not used |
 | Groq | Explanation | Model/API docs | Provider terms | YYYY-MM-DD | optional |
 | npm packages | App/runtime | lockfile | Package licenses | commit date | used |
@@ -181,7 +180,7 @@ Be ready to answer:
 
 - Why flat interest? Prototype simplicity; assumptions visible; strategy registry supports future formulas.
 - Why no credit ML? No validated labeled dataset; deterministic logic is safer and explainable.
-- Does BMKG change income? No; it only suggests an optional user-confirmed scenario.
+- Does a price reference change income? No; it only suggests an optional user-confirmed assumption.
 - Is the price live? Answer exact status and source shown.
 - What if Groq fails? Template explanation; engine unaffected.
 - How is privacy protected? Guest-local default, explicit cloud/chat consent, minimized context, RLS, no chat storage.

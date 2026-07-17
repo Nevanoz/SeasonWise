@@ -40,7 +40,6 @@ Status: 400 malformed JSON, 401 unauthenticated, 403 forbidden, 404 not found/ot
 | POST | `/calculate` | Verify shared-engine result | Optional | 30/min/IP |
 | POST | `/scenarios` | Run scenario set | Optional | 30/min/IP |
 | POST | `/compare` | Compare two options | Optional | 30/min/IP |
-| GET | `/weather` | Normalized BMKG context/fallback | No | 20/min/IP |
 | GET | `/market-prices` | Price reference/fallback | No | 20/min/IP |
 | POST | `/chat` | Scoped Groq/template answer | Optional | 5/min |
 
@@ -260,39 +259,7 @@ Exactly two options. Response:
 
 No lender or product recommendation.
 
-## 7. Weather
-
-### `GET /weather?provinceCode=32&regencyCode=32.04&districtCode=32.04.XX`
-
-Response:
-
-```json
-{
-  "data": {
-    "source": "BMKG",
-    "region": "Kabupaten Bandung, Jawa Barat",
-    "dataDate": "2026-07-16T06:00:00.000Z",
-    "lastCheckedAt": "2026-07-16T12:00:00.000Z",
-    "status": "live",
-    "rawReferenceId": "adm4:...",
-    "attributionUrl": "https://data.bmkg.go.id/prakiraan-cuaca/",
-    "summary": "Prakiraan hujan tersedia untuk tiga hari.",
-    "signals": [
-      {
-        "code": "HEAVY_RAIN_CONTEXT",
-        "suggestedScenario": "HARVEST_DELAY",
-        "requiresUserConfirmation": true
-      }
-    ],
-    "stale": false
-  },
-  "meta": { "requestId": "req_04", "timestamp": "2026-07-16T12:00:00.000Z" }
-}
-```
-
-If no verified `adm4`, response 200 `status: "unavailable"` or labeled demo `mock`; never substitute a wrong location.
-
-## 8. Market prices
+## 7. Market prices
 
 ### `GET /market-prices?commodity=rice&provinceCode=32&unit=IDR_PER_KG`
 
@@ -319,7 +286,7 @@ Response:
 
 Mock values must be stored in repo and clearly synthetic. `canAutofill=false` if unit/grade cannot be normalized.
 
-## 9. Chat
+## 8. Chat
 
 ### `POST /chat`
 
@@ -356,9 +323,9 @@ Response:
 
 `responseMode` may be `groq`, `template`, or `refusal`. Guest request is allowed but does not persist context/history.
 
-## 10. Fallback rules
+## 9. Fallback rules
 
 - `/calculate`, `/scenarios`, `/compare`: frontend uses local engine if API unavailable.
-- `/weather`, `/market-prices`: stale cache → mock → unavailable.
+- `/market-prices`: stale cache → mock → unavailable.
 - `/chat`: deterministic template.
 - `/plans`: local guest repository; cloud action queues only after explicit user retry, not background sync.

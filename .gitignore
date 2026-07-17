@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+node_modules/
+**/node_modules/
+backend/dist/
+backend/coverage/
+backend/.supabase/

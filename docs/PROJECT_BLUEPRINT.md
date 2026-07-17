@@ -48,7 +48,7 @@ Jangan gunakan “pasti aman”, “pasti mampu membayar”, “disetujui”, �
 - Fastify REST API, OpenAPI, validation, security, logging, rate limiting.
 - Supabase Auth integration, RLS, persistence, migrations.
 - Shared financial-engine integration dan verification snapshots.
-- BMKG dan market-price provider adapters, cache, normalization, fallback.
+- Market-price provider adapters, cache, normalization, fallback.
 - Groq gateway, context minimization, guardrails, structured output validation.
 - Risk-assessment orchestration, configuration, mock datasets.
 - Backend tests, API failure simulation, financial calculation audit.
@@ -68,7 +68,7 @@ Testing, README, Devpost, video, dan presentasi adalah tanggung jawab bersama.
 7. Expected, mild, severe, custom, dan combined scenarios.
 8. Side-by-side comparison untuk dua financing options.
 9. Configurable rule-based resilience assessment.
-10. BMKG live/cached/mock/unavailable adapter.
+10. Market-price live/cached/mock/unavailable adapter.
 11. Market-price verified-source/fallback adapter.
 12. Groq contextual explanation dengan template fallback.
 13. Browser-print report.
@@ -104,7 +104,6 @@ flowchart LR
   W --> L["Local Storage (guest)"]
   W --> A["Fastify API"]
   A --> S["Supabase Auth + PostgreSQL"]
-  A --> B["BMKG Adapter"]
   A --> M["Market Price Adapter"]
   A --> G["Groq API"]
   B --> C["Cache / Mock"]
@@ -130,7 +129,7 @@ flowchart TB
     VA["validation"]
     CO["config"]
   end
-  subgraph API["apps/api"]
+  subgraph API["backend"]
     RT["Fastify Routes"]
     SV["Services"]
     AD["Provider Adapters"]
@@ -161,13 +160,6 @@ musimaman/
 │   │   ├── lib/
 │   │   ├── public/demo/
 │   │   └── tests/
-│   └── api/
-│       ├── src/routes/
-│       ├── src/services/
-│       ├── src/providers/
-│       ├── src/plugins/
-│       ├── src/mocks/
-│       └── tests/
 ├── packages/
 │   ├── financial-engine/
 │   │   ├── src/
@@ -176,9 +168,12 @@ musimaman/
 │   ├── validation/src/
 │   └── config/src/
 ├── docs/
-├── supabase/
-│   ├── migrations/
-│   └── seed.sql
+├── backend/
+│   ├── src/
+│   ├── tests/
+│   └── supabase/
+│       ├── migrations/
+│       └── seed.sql
 ├── scripts/
 ├── .github/workflows/ci.yml
 ├── .env.example
@@ -190,7 +185,7 @@ musimaman/
 Tanggung jawab folder:
 
 - `apps/web`: UI, local persistence, browser calculation, auth client, print.
-- `apps/api`: secrets, Groq, external providers, cache, authenticated gateway.
+- `backend`: Fastify API, Supabase migrations/seed, Groq, market-price provider, cache, authenticated gateway.
 - `financial-engine`: normalization, repayment schedule, monthly ledger, metrics, scenario transforms, risk rules.
 - `shared-types`: domain interfaces dan API DTO.
 - `validation`: shared Zod schemas; tidak berisi business calculation.
@@ -237,12 +232,6 @@ Source of truth hanya output `packages/financial-engine`. UI, database, dan AI t
 
 ## 8. External-data policy
 
-### BMKG
-
-Forecast API resmi menyediakan JSON tiga hari per tiga jam untuk kode `adm4`, diperbarui dua kali sehari, limit 60 request/menit/IP, dan wajib menampilkan atribusi BMKG. Nowcast warning menggunakan CAP XML. Dokumentasi: <https://data.bmkg.go.id/prakiraan-cuaca/> dan <https://data.bmkg.go.id/peringatan-dini-cuaca/>.
-
-MVP hanya mengaktifkan live forecast untuk region mapping yang memiliki verified `adm4`. Jika input berhenti pada kabupaten/kota, tampilkan fallback regional atau `unavailable`; jangan mengarang village code.
-
 ### Harga
 
 Prioritas sumber adalah Bapanas Open Data/Panel Harga. Saat blueprint disusun, panel dapat berada dalam maintenance dan beberapa dataset diberi akses terbatas. Karena tidak ada public API contract stabil yang boleh diasumsikan, dilarang membuat undocumented scraper. Implementasi:
@@ -281,11 +270,10 @@ Cloud save selalu explicit. Guest financial data tidak dikirim ke API untuk calc
 ```mermaid
 flowchart LR
   GH["Public GitHub repository"] --> V["Vercel: apps/web"]
-  GH --> RW["Railway: apps/api"]
+  GH --> RW["Railway: backend"]
   V --> RW
   V --> SB["Supabase Auth"]
   RW --> SB
-  RW --> BM["BMKG"]
   RW --> BP["Verified price source"]
   RW --> GR["Groq"]
 ```
@@ -323,10 +311,8 @@ GROQ_TIMEOUT_MS=8000
 CHAT_MAX_INPUT_CHARS=1200
 CHAT_RATE_LIMIT_PER_MINUTE=5
 
-BMKG_FORECAST_BASE_URL=https://api.bmkg.go.id/publik/prakiraan-cuaca
-BMKG_NOWCAST_FEED_URL=https://www.bmkg.go.id/alerts/nowcast/id
-BMKG_TIMEOUT_MS=3500
-EXTERNAL_CACHE_TTL_SECONDS=21600
+MARKET_PRICE_CACHE_TTL_SECONDS=86400
+EXTERNAL_MEMORY_CACHE_TTL_SECONDS=300
 
 MARKET_PRICE_PROVIDER=mock
 MARKET_PRICE_BASE_URL=
@@ -366,7 +352,7 @@ Semua must-have tetap “ada” saat simplification: live source → dated fallb
 - Expected result, tiga skenario, dan combined scenario lulus tests.
 - Dua financing plans dapat dibandingkan.
 - Cash gap, first gap month, minimum balance, dan assumptions terlihat.
-- BMKG dan market price menunjukkan `source`, `dataDate`, `lastCheckedAt`, `region`, dan `status`; fallback berlabel.
+- Market price menunjukkan `source`, `dataDate`, `lastCheckedAt`, `region`, `unit`, dan `status`; fallback berlabel.
 - Groq hanya menjelaskan structured context; out-of-scope dan injection ditolak; template fallback bekerja.
 - AI tidak menghasilkan atau mengubah angka engine.
 - Browser-print report memuat engine/config version dan disclaimer.
