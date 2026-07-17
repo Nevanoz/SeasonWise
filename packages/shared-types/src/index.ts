@@ -144,3 +144,15 @@ export interface CashFlowChartPoint {
   runningBalanceRupiah: number;
   isCashGap: boolean;
 }
+
+export interface ScenarioConfig {
+  mode: "EXPECTED" | "MILD" | "SEVERE" | "CUSTOM";
+  harvestDelayMonths: number;
+  harvestIncomeReductionBps: number;
+  inputCostIncreaseBps: number;
+  enabled: {
+    harvestDelay: boolean;
+    harvestIncomeReduction: boolean;
+    inputCostIncrease: boolean;
+  };
+}

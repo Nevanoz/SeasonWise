@@ -14,6 +14,7 @@ import type {
   MonthlyCashFlow,
   RiskAssessment,
   RiskFactor,
+  ScenarioConfig,
 } from "@musimaman/shared-types";
 import { RISK_CONFIG, ENGINE_VERSION } from "@musimaman/config";
 
@@ -23,18 +24,6 @@ import { RISK_CONFIG, ENGINE_VERSION } from "@musimaman/config";
 
 export type Rupiah = number;
 export type BasisPoints = number;
-
-export interface ScenarioConfig {
-  mode: "EXPECTED" | "MILD" | "SEVERE" | "CUSTOM";
-  harvestDelayMonths: number;
-  harvestIncomeReductionBps: number;
-  inputCostIncreaseBps: number;
-  enabled: {
-    harvestDelay: boolean;
-    harvestIncomeReduction: boolean;
-    inputCostIncrease: boolean;
-  };
-}
 
 export interface ScheduledPayment {
   date: string; // YYYY-MM-DD
@@ -1050,4 +1039,4 @@ export function calculateResilienceScore(
 }
 
 // Re-export types for consumers
-export type { CalculationInput, CashFlowResult, MonthlyCashFlow, RiskAssessment, RiskFactor };
+export type { CalculationInput, CashFlowResult, MonthlyCashFlow, RiskAssessment, RiskFactor, ScenarioConfig };
