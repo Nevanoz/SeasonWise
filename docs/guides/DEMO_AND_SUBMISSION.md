@@ -124,7 +124,7 @@ Also disclose model/provider names and whether AI-generated assets/code were use
 
 ## 6. Source and license register
 
-Create `docs/SOURCES.md` with:
+Maintain [SOURCES.md](../references/SOURCES.md) with:
 
 | Resource | Purpose | URL/version | License/terms | Access date | Shipped status |
 |---|---|---|---|---|---|

@@ -5,6 +5,12 @@ Content type: `application/json`
 Authentication: `Authorization: Bearer <Supabase access token>` pada protected routes.  
 Money in JSON: integer rupiah selama ≤ JavaScript safe integer. Database `bigint` serialization must be checked.
 
+## Implementation status
+
+Implemented now: `/health`, `/auth/session`, `/plans`, `/plans/:id`, `/plans/:id/duplicate`, `/market-prices`, and `/chat`.
+
+Reserved by the target architecture but not implemented yet: `/calculate`, `/scenarios`, and `/compare`. Their contracts remain documented to preserve the product vision and shared-engine boundary.
+
 ## 1. Common envelopes
 
 ```ts

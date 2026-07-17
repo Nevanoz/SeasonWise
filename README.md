@@ -5,6 +5,13 @@ MusimAman adalah web app simulasi arus kas musiman untuk membantu petani kecil I
 > **Pernyataan Penting:**
 > Alat bantu diskusi, bukan persetujuan kredit atau nasihat keuangan. Semua skenario adalah simulasi berdasarkan asumsi pengguna.
 
+## Status Implementasi
+
+Workspace aplikasi yang sudah tersedia saat ini adalah `backend`: Fastify API, Supabase Auth/RLS, migrations, synthetic seed, market-price fallback, dan Groq gateway. `apps/web` serta shared financial-engine packages pada struktur target masih merupakan tahap implementasi berikutnya; dokumentasinya dipertahankan sebagai visi produk.
+
+Untuk mencoba versi saat ini, gunakan API dan dokumentasi interaktif backend. Lihat [backend/README.md](./backend/README.md).
+
+
 ## Fitur Utama
 
 - **Editable templates:** Template tanaman untuk padi (rice), jagung (corn), cabai (chili), kopi (coffee), dan kelapa sawit (palm oil).
@@ -15,7 +22,7 @@ MusimAman adalah web app simulasi arus kas musiman untuk membantu petani kecil I
 - **Integrasi Data Eksternal:** Referensi harga pasar komoditas dengan status sumber yang jelas.
 - **AI Chat Explanation:** Asisten chat interaktif yang ditenagai Groq untuk menjelaskan hasil kalkulasi tanpa mengubah angka keuangan.
 
-## Struktur Repositori
+## Struktur Repositori Target
 
 ```text
 musimaman/
@@ -51,8 +58,8 @@ musimaman/
    ```
 
 ### Scripts Utama
-- `pnpm dev`: Menjalankan aplikasi frontend dan backend secara paralel.
+- `pnpm dev`: Menjalankan backend Fastify yang tersedia saat ini.
 - `pnpm build`: Melakukan build untuk semua workspace.
 - `pnpm typecheck`: Melakukan typecheck kode TypeScript di seluruh project.
 - `pnpm test`: Menjalankan pengujian (unit/integration tests) menggunakan Vitest.
-- `pnpm test:e2e`: Menjalankan pengujian E2E menggunakan Playwright.
+- `pnpm test:e2e`: Menjalankan integration test backend yang tersedia saat ini.

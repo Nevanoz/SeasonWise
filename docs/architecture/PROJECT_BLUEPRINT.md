@@ -4,13 +4,14 @@ Dokumen ini adalah dokumen induk implementasi MusimAman. Gunakan bersama:
 
 - [FRONTEND_BLUEPRINT.md](./FRONTEND_BLUEPRINT.md)
 - [BACKEND_BLUEPRINT.md](./BACKEND_BLUEPRINT.md)
-- [AI_INTEGRATION.md](./AI_INTEGRATION.md)
-- [FINANCIAL_ENGINE.md](./FINANCIAL_ENGINE.md)
-- [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)
-- [TESTING_GUIDE.md](./TESTING_GUIDE.md)
-- [DEMO_AND_SUBMISSION.md](./DEMO_AND_SUBMISSION.md)
-- [README.md](./README.md)
+- [ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md)
+- [AI_INTEGRATION.md](../specifications/AI_INTEGRATION.md)
+- [FINANCIAL_ENGINE.md](../specifications/FINANCIAL_ENGINE.md)
+- [API_DOCUMENTATION.md](../specifications/API_DOCUMENTATION.md)
+- [DATABASE_SCHEMA.md](../specifications/DATABASE_SCHEMA.md)
+- [TESTING_GUIDE.md](../guides/TESTING_GUIDE.md)
+- [DEMO_AND_SUBMISSION.md](../guides/DEMO_AND_SUBMISSION.md)
+- [Documentation index](../README.md)
 
 ## 1. Keputusan produk
 
@@ -68,11 +69,10 @@ Testing, README, Devpost, video, dan presentasi adalah tanggung jawab bersama.
 7. Expected, mild, severe, custom, dan combined scenarios.
 8. Side-by-side comparison untuk dua financing options.
 9. Configurable rule-based resilience assessment.
-10. Market-price live/cached/mock/unavailable adapter.
-11. Market-price verified-source/fallback adapter.
-12. Groq contextual explanation dengan template fallback.
-13. Browser-print report.
-14. Synthetic one-click rice demo.
+10. Market-price verified-source adapter dengan status dan fallback `live`, `cached`, `mock`, atau `unavailable`.
+11. Groq contextual explanation dengan template fallback.
+12. Browser-print report.
+13. Synthetic one-click rice demo.
 
 ### Tidak dikerjakan dalam 24 jam
 
@@ -148,7 +148,7 @@ flowchart TB
   FE --> CO
 ```
 
-## 5. Repository structure
+## 5. Target repository structure
 
 ```text
 musimaman/
@@ -185,7 +185,7 @@ musimaman/
 Tanggung jawab folder:
 
 - `apps/web`: UI, local persistence, browser calculation, auth client, print.
-- `backend`: Fastify API, Supabase migrations/seed, Groq, market-price provider, cache, authenticated gateway.
+- `backend`: Fastify API, Supabase migrations/seed, Groq, market-price provider, cache, authenticated gateway; this is the currently implemented application workspace.
 - `financial-engine`: normalization, repayment schedule, monthly ledger, metrics, scenario transforms, risk rules.
 - `shared-types`: domain interfaces dan API DTO.
 - `validation`: shared Zod schemas; tidak berisi business calculation.

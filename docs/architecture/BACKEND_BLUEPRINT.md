@@ -6,7 +6,7 @@ Backend adalah secure gateway untuk secrets, external data, AI, authenticated pl
 
 Gunakan Fastify, TypeScript, Zod, Supabase, Pino structured logging bawaan Fastify, `@fastify/cors`, `@fastify/rate-limit`, `@fastify/swagger`, dan `@fastify/swagger-ui`. Deploy utama ke Railway karena Fastify dapat berjalan sebagai Node service tanpa mengubah lifecycle menjadi serverless; bind `host: "::"`.
 
-## 2. Runtime structure
+## 2. Target runtime structure
 
 ```text
 src/
@@ -108,7 +108,7 @@ API builds allowlisted `ChatContext`; raw plan notes, receipt text, email, and i
 
 Use Groq strict Structured Outputs for the documented default `openai/gpt-oss-20b`, with all properties required and `additionalProperties: false`; validate again with Zod. The Chat Completions API currently does not support the `store` parameter, so it is omitted. If provider fails, use `explainResultWithTemplate()`.
 
-See [AI_INTEGRATION.md](./AI_INTEGRATION.md).
+See [AI_INTEGRATION.md](../specifications/AI_INTEGRATION.md).
 
 ## 7. Security baseline
 

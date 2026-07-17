@@ -358,7 +358,7 @@ Reject:
 ## 12. Definition of Done
 
 - Pure functions have no clock/network/storage.
-- Exact unit cases in `TESTING_GUIDE.md` pass.
+- Exact unit cases in [TESTING_GUIDE.md](../guides/TESTING_GUIDE.md) pass.
 - Web and API import the same built artifact.
 - Demo result checksum is committed.
 - All totals reconcile to monthly ledger.
