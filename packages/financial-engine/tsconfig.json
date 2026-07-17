@@ -5,12 +5,8 @@
     "declarationDir": "./dist",
     "moduleResolution": "node",
     "module": "CommonJS",
-    "rootDir": "../../",
-    "paths": {
-      "@musimaman/shared-types": ["../shared-types/src/index.ts"],
-      "@musimaman/config": ["../config/src/index.ts"]
-    }
+    "rootDir": "./src"
   },
-  "include": ["src/**/*", "../shared-types/src/**/*", "../config/src/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"]
 }
