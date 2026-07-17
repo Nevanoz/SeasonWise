@@ -4,6 +4,13 @@ MusimAman adalah web app simulasi arus kas musiman untuk membantu petani kecil I
 
 > Alat bantu diskusi, bukan persetujuan kredit atau nasihat keuangan. Semua skenario adalah simulasi berdasarkan asumsi pengguna.
 
+## Current implementation status
+
+The implemented application workspace is currently `backend`: Fastify, Supabase Auth/RLS, migrations, synthetic seed data, market-price fallback, and the guarded Groq gateway. `apps/web` and the shared financial-engine packages below remain the target product architecture.
+
+Current root commands run the backend. The browser-based one-click demo, local guest flow, charts, comparison UI, and print view remain planned frontend work; their specifications are retained so the product vision does not change.
+
+
 ## Problem
 
 Pendapatan pertanian sering terkonsentrasi saat panen, sedangkan biaya produksi, rumah tangga, dan repayment dapat jatuh lebih awal. Perbandingan loan generik yang hanya melihat total income/cost dapat melewatkan cash gap pada bulan tertentu.
@@ -17,7 +24,7 @@ Pendapatan pertanian sering terkonsentrasi saat panen, sedangkan biaya produksi,
 - Expected, mild, severe, custom, and combined stress scenarios.
 - Transparent resilience assessment dan two-option comparison.
 - Guest-first local storage dan Supabase saved-plan CRUD.
-- BMKG and market-price context with visible live/cached/mock status.
+- Market-price context with visible live/cached/mock/unavailable status.
 - Groq contextual explanation with rule-template fallback.
 - Print-friendly discussion report dan one-click synthetic demo.
 
@@ -42,37 +49,38 @@ flowchart LR
   W --> L["Local Storage"]
   W --> A["Fastify / Railway"]
   A --> S["Supabase"]
-  A --> B["BMKG"]
   A --> P["Verified Price Source / Fallback"]
   A --> G["Groq"]
 ```
 
 Core calculation runs in the browser and API. External services enrich but never block it.
 
-## Repository
+## Target repository
 
 ```text
 apps/web                 Next.js UI, guest mode, print, auth client
-apps/api                 Fastify API, providers, Groq gateway
+backend                  Fastify API, Supabase, providers, Groq gateway
 packages/financial-engine  Source of truth for calculations
 packages/shared-types    Domain and API types
 packages/validation      Shared Zod schemas
 packages/config          Crop/risk/scenario configuration
-supabase/migrations      PostgreSQL schema and RLS
+backend/supabase/migrations PostgreSQL schema and RLS
 docs                     Architecture, sources, submission assets
 ```
 
 Complete build blueprint:
 
-- [PROJECT_BLUEPRINT.md](./PROJECT_BLUEPRINT.md)
-- [FRONTEND_BLUEPRINT.md](./FRONTEND_BLUEPRINT.md)
-- [BACKEND_BLUEPRINT.md](./BACKEND_BLUEPRINT.md)
-- [FINANCIAL_ENGINE.md](./FINANCIAL_ENGINE.md)
-- [AI_INTEGRATION.md](./AI_INTEGRATION.md)
-- [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)
-- [TESTING_GUIDE.md](./TESTING_GUIDE.md)
-- [DEMO_AND_SUBMISSION.md](./DEMO_AND_SUBMISSION.md)
+- [PROJECT_BLUEPRINT.md](./architecture/PROJECT_BLUEPRINT.md)
+- [FRONTEND_BLUEPRINT.md](./architecture/FRONTEND_BLUEPRINT.md)
+- [BACKEND_BLUEPRINT.md](./architecture/BACKEND_BLUEPRINT.md)
+- [ARCHITECTURE_DIAGRAMS.md](./architecture/ARCHITECTURE_DIAGRAMS.md)
+- [FINANCIAL_ENGINE.md](./specifications/FINANCIAL_ENGINE.md)
+- [AI_INTEGRATION.md](./specifications/AI_INTEGRATION.md)
+- [API_DOCUMENTATION.md](./specifications/API_DOCUMENTATION.md)
+- [DATABASE_SCHEMA.md](./specifications/DATABASE_SCHEMA.md)
+- [TESTING_GUIDE.md](./guides/TESTING_GUIDE.md)
+- [DEMO_AND_SUBMISSION.md](./guides/DEMO_AND_SUBMISSION.md)
+- [SOURCES.md](./references/SOURCES.md)
 
 ## Technology
 
@@ -104,19 +112,19 @@ Exact scripts must be defined in root `package.json`:
 ```json
 {
   "scripts": {
-    "dev": "pnpm --parallel --filter @musimaman/web --filter @musimaman/api dev",
+    "dev": "pnpm --filter @musimaman/backend dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "test:e2e": "pnpm --filter @musimaman/web test:e2e"
+    "test:e2e": "pnpm --filter @musimaman/backend test:integration"
   }
 }
 ```
 
 ## Environment
 
-Create `.env.example` from the complete list in `PROJECT_BLUEPRINT.md`. Never commit actual values.
+Create `.env.example` from the complete list in [PROJECT_BLUEPRINT.md](./architecture/PROJECT_BLUEPRINT.md). Never commit actual values.
 
 Required for guest/local calculator:
 
@@ -141,7 +149,6 @@ Optional enrichments:
 ```dotenv
 GROQ_API_KEY=
 GROQ_MODEL=openai/gpt-oss-20b
-BMKG_FORECAST_BASE_URL=https://api.bmkg.go.id/publik/prakiraan-cuaca
 MARKET_PRICE_PROVIDER=mock
 MARKET_PRICE_BASE_URL=
 ```
@@ -151,9 +158,9 @@ MARKET_PRICE_BASE_URL=
 1. Create a Supabase project.
 2. Enable email/password authentication.
 3. Configure local and production redirect URLs.
-4. Apply migrations from `supabase/migrations`.
+4. Apply migrations from `backend/supabase/migrations`.
 5. Verify RLS with two test users before adding any production-like data.
-6. Run `supabase/seed.sql` only for clearly synthetic demo records.
+6. Run `backend/supabase/seed.sql` only for clearly synthetic demo records.
 
 Supabase RLS is mandatory on every exposed table. Cloud plans are owner-only in MVP.
 
@@ -183,7 +190,7 @@ pnpm build
 
 ### API
 
-- Deploy `apps/api` from the monorepo to Railway.
+- Deploy `backend` from the monorepo to Railway.
 - Configure `PORT`; Fastify listens on `host: "::"`.
 - Add secrets only in Railway.
 - Generate public domain and configure Vercel origin in `WEB_ORIGIN`.
@@ -195,7 +202,7 @@ pnpm build
 - Verify production RLS and auth redirects.
 - Never expose service-role key to Vercel client bundle.
 
-## Demo mode
+## Target demo mode
 
 Click **Coba Demo**. The seed is bundled, synthetic, and works without login. It must show a rice plan where expected timing is manageable, one-month harvest delay creates a visible gap under monthly installments, and post-harvest repayment improves timing.
 
@@ -203,8 +210,7 @@ Demo output must be generated by the actual engine and protected by snapshot tes
 
 ## External-data fallback
 
-- BMKG: live → cache → labeled mock → unavailable.
-- Market price: verified provider → dated snapshot → labeled synthetic fallback.
+- Market price: verified provider → cache → labeled synthetic fallback → unavailable.
 - Calculator never depends on either.
 - Show source, region, unit, data date, last checked time, and status.
 - Do not scrape an undocumented website.
@@ -215,7 +221,7 @@ Groq receives a minimized, structured summary only after user action. It may exp
 
 ## Financial engine
 
-The engine aggregates calendar-month income, production expense, household minimum expense, financing inflow/fees/payment, and running balance. A cash gap exists only when running balance falls below zero. Currency is integer rupiah; rates are integer basis points. Formula assumptions and tests are documented in [FINANCIAL_ENGINE.md](./FINANCIAL_ENGINE.md).
+The engine aggregates calendar-month income, production expense, household minimum expense, financing inflow/fees/payment, and running balance. A cash gap exists only when running balance falls below zero. Currency is integer rupiah; rates are integer basis points. Formula assumptions and tests are documented in [FINANCIAL_ENGINE.md](./specifications/FINANCIAL_ENGINE.md).
 
 ## Prototype assumptions
 
@@ -243,13 +249,11 @@ Before submission, replace this section with the actual tools used, tasks assist
 
 ## Data sources
 
-- BMKG Open Weather Data: <https://data.bmkg.go.id/prakiraan-cuaca/>; attribution required.
-- BMKG Weather Warnings: <https://data.bmkg.go.id/peringatan-dini-cuaca/>.
 - Bapanas Open Data: <https://data.badanpangan.go.id/>; integrate only a verified dataset/access method.
 - Groq docs: <https://console.groq.com/docs/structured-outputs>.
 - Supabase RLS: <https://supabase.com/docs/guides/database/postgres/row-level-security>.
 
-Create `docs/SOURCES.md` with access date, version, license/terms, and actual shipped status.
+Maintain [SOURCES.md](./references/SOURCES.md) with access date, version, license/terms, and actual shipped status.
 
 ## Team responsibilities
 
@@ -265,7 +269,7 @@ Future—not hackathon MVP:
 - farmer-consent sharing;
 - verified financing templates;
 - effective/annuity/grace strategies;
-- historical weather/price and scenario libraries;
+- historical price and scenario libraries;
 - expert-validated thresholds/advisories;
 - more crops and regional languages;
 - offline-first sync and multi-device reconciliation;

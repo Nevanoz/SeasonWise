@@ -5,6 +5,13 @@ MusimAman adalah web app simulasi arus kas musiman untuk membantu petani kecil I
 > **Pernyataan Penting:**
 > Alat bantu diskusi, bukan persetujuan kredit atau nasihat keuangan. Semua skenario adalah simulasi berdasarkan asumsi pengguna.
 
+## Status Implementasi
+
+Workspace aplikasi yang sudah tersedia saat ini adalah `backend`: Fastify API, Supabase Auth/RLS, migrations, synthetic seed, market-price fallback, dan Groq gateway. `apps/web` serta shared financial-engine packages pada struktur target masih merupakan tahap implementasi berikutnya; dokumentasinya dipertahankan sebagai visi produk.
+
+Untuk mencoba versi saat ini, gunakan API dan dokumentasi interaktif backend. Lihat [backend/README.md](./backend/README.md).
+
+
 ## Fitur Utama
 
 - **Editable templates:** Template tanaman untuk padi (rice), jagung (corn), cabai (chili), kopi (coffee), dan kelapa sawit (palm oil).
@@ -12,22 +19,21 @@ MusimAman adalah web app simulasi arus kas musiman untuk membantu petani kecil I
 - **Pembiayaan:** Perbandingan skenario cicilan bulanan flat vs pascapanen (bullet).
 - **Mesin Finansial Deterministik:** Perhitungan saldo bulanan, gap cash flow, dan rasio kemampuan membayar secara presisi.
 - **Skenario Stress:** Simulasi skenario Expected, Mild, Severe, Custom, dan Combined.
-- **Integrasi Data Eksternal:** Konteks cuaca dari BMKG dan referensi harga pasar komoditas.
+- **Integrasi Data Eksternal:** Referensi harga pasar komoditas dengan status sumber yang jelas.
 - **AI Chat Explanation:** Asisten chat interaktif yang ditenagai Groq untuk menjelaskan hasil kalkulasi tanpa mengubah angka keuangan.
 
-## Struktur Repositori
+## Struktur Repositori Target
 
 ```text
 musimaman/
 ├── apps/
 │   ├── web/        # Next.js Frontend
-│   └── api/        # Fastify API (Backend)
 ├── packages/
 │   ├── financial-engine/   # Pure TypeScript calculation engine
 │   ├── shared-types/       # Shared TypeScript types/interfaces
 │   ├── validation/         # Zod schemas for form validation
 │   └── config/             # Config variables & templates
-├── supabase/       # Supabase PostgreSQL schema, migrations & seed
+├── backend/       # Fastify API, Supabase migrations/seed, providers & tests
 └── docs/           # Architecture diagrams, blueprints & documents
 ```
 
@@ -52,8 +58,8 @@ musimaman/
    ```
 
 ### Scripts Utama
-- `pnpm dev`: Menjalankan aplikasi frontend dan backend secara paralel.
+- `pnpm dev`: Menjalankan backend Fastify yang tersedia saat ini.
 - `pnpm build`: Melakukan build untuk semua workspace.
 - `pnpm typecheck`: Melakukan typecheck kode TypeScript di seluruh project.
 - `pnpm test`: Menjalankan pengujian (unit/integration tests) menggunakan Vitest.
-- `pnpm test:e2e`: Menjalankan pengujian E2E menggunakan Playwright.
+- `pnpm test:e2e`: Menjalankan integration test backend yang tersedia saat ini.

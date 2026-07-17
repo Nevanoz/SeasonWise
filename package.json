@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npm run dev --prefix apps/web",
+    "dev": "pnpm --filter @musimaman/web dev",
+    "dev:frontend": "pnpm --filter @musimaman/web dev",
+    "dev:backend": "pnpm --filter @musimaman/backend dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "test:e2e": "pnpm --filter @musimaman/web test:e2e"
-  }
+    "test:e2e": "pnpm --filter @musimaman/backend test:integration"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.9.0"
 }
 

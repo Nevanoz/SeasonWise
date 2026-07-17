@@ -1,5 +1,6 @@
 # dependencies
 node_modules/
+**/node_modules/
 .pnpm-store/
 
 # next.js
@@ -9,6 +10,11 @@ out/
 # production
 build/
 dist/
+backend/dist/
+backend/coverage/
+
+# supabase
+backend/.supabase/
 
 # misc
 .DS_Store
@@ -23,6 +29,8 @@ pnpm-debug.log*
 # local env files
 .env*.local
 .env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
