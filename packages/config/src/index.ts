@@ -6,6 +6,13 @@ export interface ProductionPhaseTemplate {
   description?: string;
 }
 
+export interface CropTemplateExpense {
+  category: string;
+  monthOffset: number;
+  amountPerHa: number;
+  description: string;
+}
+
 export interface CropTemplate {
   cropType: "rice" | "corn" | "chili" | "coffee" | "palm_oil";
   name: string;
@@ -18,6 +25,7 @@ export interface CropTemplate {
   expectedYieldPerHa: number;
   expectedSellingPriceRupiah: number;
   cycleDurationMonths: number;
+  typicalExpenses: CropTemplateExpense[];
 }
 
 export const CROP_TEMPLATES: Record<string, CropTemplate> = {
@@ -37,6 +45,13 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
       { name: "Perawatan & Pengairan", startDay: 31, endDay: 90, costPercent: 25, description: "Penyiangan rumput, pengairan, penanggulangan hama" },
       { name: "Panen & Pengeringan", startDay: 91, endDay: 120, costPercent: 25, description: "Pemotongan padi and rontok bulir" },
     ],
+    typicalExpenses: [
+      { category: "Sewa Lahan & Traktor", monthOffset: 0, amountPerHa: 2000000, description: "Sewa alat berat dan bajak sawah" },
+      { category: "Bibit & Pupuk Dasar", monthOffset: 0, amountPerHa: 1500000, description: "Benih padi unggul dan pupuk organik" },
+      { category: "Pupuk Susulan & Pestisida", monthOffset: 1, amountPerHa: 1200000, description: "Urea, NPK, dan obat hama" },
+      { category: "Tenaga Kerja Penyiangan", monthOffset: 2, amountPerHa: 800000, description: "Upah buruh tani untuk penyiangan rumput" },
+      { category: "Upah Buruh Panen", monthOffset: 3, amountPerHa: 2500000, description: "Biaya potong padi dan angkut" },
+    ],
   },
   corn: {
     cropType: "corn",
@@ -53,6 +68,12 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
       { name: "Penanaman & Pembubunan", startDay: 11, endDay: 25, costPercent: 35 },
       { name: "Pemeliharaan & Pemupukan", startDay: 26, endDay: 85, costPercent: 30 },
       { name: "Panen", startDay: 86, endDay: 110, costPercent: 20 },
+    ],
+    typicalExpenses: [
+      { category: "Olah Lahan & Benih", monthOffset: 0, amountPerHa: 2500000, description: "Benih jagung hibrida dan bajak" },
+      { category: "Pupuk (Urea & Phonska)", monthOffset: 1, amountPerHa: 1800000, description: "Pemupukan fase vegetatif" },
+      { category: "Pestisida & Hama Ulat", monthOffset: 2, amountPerHa: 800000, description: "Penanganan ulat grayak" },
+      { category: "Panen & Pemipilan", monthOffset: 3, amountPerHa: 1500000, description: "Biaya panen dan sewa mesin pipil" },
     ],
   },
   chili: {
@@ -71,6 +92,14 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
       { name: "Pemupukan Susulan & Pengendalian OPT", startDay: 61, endDay: 120, costPercent: 30 },
       { name: "Pemetikan Panen", startDay: 121, endDay: 150, costPercent: 15 },
     ],
+    typicalExpenses: [
+      { category: "Mulsa & Bambu Lanjaran", monthOffset: 0, amountPerHa: 4000000, description: "Pemasangan mulsa plastik dan tiang bambu" },
+      { category: "Bibit Cabai & Pupuk Dasar", monthOffset: 0, amountPerHa: 3000000, description: "Pembelian bibit unggul keriting" },
+      { category: "Pupuk Cor & Kalsium", monthOffset: 1, amountPerHa: 1500000, description: "Pemupukan cair berkala" },
+      { category: "Obat Hama & Fungisida", monthOffset: 2, amountPerHa: 2000000, description: "Pencegahan patek (antraknosa) dan kutu daun" },
+      { category: "Tenaga Kerja Petik", monthOffset: 4, amountPerHa: 1000000, description: "Upah buruh panen bertahap" },
+      { category: "Tenaga Kerja Petik II", monthOffset: 5, amountPerHa: 1000000, description: "Upah buruh panen tahap akhir" },
+    ],
   },
   coffee: {
     cropType: "coffee",
@@ -88,6 +117,12 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
       { name: "Pemasakan Buah (Fruit Development)", startDay: 241, endDay: 300, costPercent: 20 },
       { name: "Pemetikan Gelondong Merah (Harvest)", startDay: 301, endDay: 365, costPercent: 20 },
     ],
+    typicalExpenses: [
+      { category: "Pupuk & Pestisida", monthOffset: 1, amountPerHa: 3000000, description: "Pupuk organik dan NPK berkadar nitrogen tinggi" },
+      { category: "Pembersihan Gulma & Piringan", monthOffset: 4, amountPerHa: 1200000, description: "Upah penyiangan bawah pohon" },
+      { category: "Pemangkasan Wiwilan", monthOffset: 7, amountPerHa: 1000000, description: "Pemangkasan tunas air yang tidak produktif" },
+      { category: "Tenaga Kerja Panen Merah", monthOffset: 10, amountPerHa: 3500000, description: "Buruh petik buah kopi merah" },
+    ],
   },
   palm_oil: {
     cropType: "palm_oil",
@@ -103,6 +138,12 @@ export const CROP_TEMPLATES: Record<string, CropTemplate> = {
       { name: "Pembersihan Piringan & Pasar Pikul", startDay: 1, endDay: 10, costPercent: 30 },
       { name: "Kastrasi & Pemupukan TBS", startDay: 11, endDay: 20, costPercent: 40 },
       { name: "Pemanenan & Pengangkutan PKS", startDay: 21, endDay: 30, costPercent: 30 },
+    ],
+    typicalExpenses: [
+      { category: "Pupuk NPK & KCL (Fase 1)", monthOffset: 2, amountPerHa: 4500000, description: "Pupuk utama kelapa sawit" },
+      { category: "Penyemprotan Piringan & Pasar Pikul", monthOffset: 4, amountPerHa: 1000000, description: "Herbisida piringan sawit" },
+      { category: "Pupuk NPK & KCL (Fase 2)", monthOffset: 8, amountPerHa: 4500000, description: "Pemupukan kedua akhir tahun" },
+      { category: "Tenaga Panen & Kastrasi berkala", monthOffset: 10, amountPerHa: 2000000, description: "Egrang/dodos buah TBS sawit" },
     ],
   },
 };
